@@ -11,13 +11,12 @@ app.use(express.json());
 
 
 
-
-
 mongoose.connect("mongodb+srv://PrachiRakhonde:TidE9uPBxvyZRFOn@cluster0.vdm2ccj.mongodb.net/group27Database?retryWrites=true&w=majority", {
     useNewUrlParser: true
 })
 .then(() => console.log("MongoDb is connected on 27017"))
 .catch(err => console.log(err))
+
 
 app.use(multer().any())
 
