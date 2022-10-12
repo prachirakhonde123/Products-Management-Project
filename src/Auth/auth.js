@@ -26,7 +26,6 @@ const verifyToken = function (req, res, next) {
             if(err){
                 return res.status(401).send({status : false, message : "Invalid Token"})
             }
-
             else{
                 req.tokenId = decodedToken.userId
                 next()
@@ -66,3 +65,5 @@ const verifyToken = function (req, res, next) {
     }
 }
   
+
+module.exports = {verifyToken,authentication,authorisation}

@@ -182,7 +182,7 @@ const userLogin = async function(req,res){
 const getProfile = async (req, res) => {
     try {
       const userId = req.params.userId;
-      const userIdFromToken = req.userId;
+      //const userIdFromToken = req.userId;
   
       //validation starts
       if (!validator.isValidObjectId(userId)) {
@@ -195,10 +195,10 @@ const getProfile = async (req, res) => {
         return res.status(400).send({ status: false, message: `User doesn't exists by ${userId}` });
       }
   
-      //Authentication & authorization
-      if (findUserProfile._id.toString() != userIdFromToken) {
-        return res.status(401).send({status: false,message: `Unauthorized access! User's info doesn't match`,});
-      }
+    //   //Authentication & authorization
+    //   if (findUserProfile._id.toString() != userIdFromToken) {
+    //     return res.status(401).send({status: false,message: `Unauthorized access! User's info doesn't match`,});
+    //   }
   
       return res.status(200).send({status: true,message: "Profile found successfully.",data: findUserProfile,});
     } 
@@ -230,7 +230,6 @@ const updateuser = async function(req,res){
           if(fname){
             if(!isValidName(fname)) {
               return res.status(400).send({ status: false, message: "please enter valid fname" })
-
           }
         }
         if(lname){
@@ -334,7 +333,7 @@ const updateuser = async function(req,res){
     //====================================Updating Profile=======================================================================================
     const update = await userModel.findOneAndUpdate({_id:user},{$set:{fname:fname , lname:lname,  email:email ,profileImage :uploadImage , phone : phone ,password :bcryptPassword , address:address}},{new: true})
     if (!update) {
-      return res.status(400).send({ status: false, message: "userId not found" })
+      return res.status(404).send({ status: false, message: "userId not found" })
   }
 
   return res.status(200).send({ status: true , message: "User profile updated", data: update})
