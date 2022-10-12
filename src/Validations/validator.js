@@ -11,7 +11,8 @@ const isValidBody = function (data) {
 
 const isValid = function (value) {
   if (typeof value !== "string")   return false
-  if (typeof value === 'string' && value.trim().length === 0) return false        
+  if (typeof value === 'string' && value.trim().length === 0) return false   
+  if (typeof value === 'undefined' || value === null) return false     
   return true;
 };
 
@@ -57,6 +58,13 @@ const isvalidPincode = function (pincode) {
   return false
 };
 
+const validInstallment = function isInteger(value) {
+  if (value < 0) return false
+  if (value % 1 == 0) return true;
+}
+const validString = function(value) {
+  if (typeof value === 'string' && value.trim().length === 0) return false //it checks whether the string contain only space or not 
+  return true;
+}
 
-
-module.exports = { isValidEmail, isValidName, isValidBody, isValidPassword, isvalidPhone, isvalidPincode,isValid,isvalidObjectId};
+module.exports = {validInstallment, isValidEmail, isValidName, isValidBody,validString, isValidPassword, isvalidPhone, isvalidPincode,isValid,isvalidObjectId};

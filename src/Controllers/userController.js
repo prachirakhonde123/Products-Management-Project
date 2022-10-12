@@ -268,6 +268,7 @@ const updateuser = async function(req,res){
         }
         
         //==========================================Updating shiiping Address==========================================
+       if(address){ 
         if(address.shipping){
             if(address.shipping.street){
             if(!address.shipping.street){
@@ -321,6 +322,7 @@ const updateuser = async function(req,res){
                 if(!isvalidPincode(address.billing.pincode)) return res.status(400).send({status : false, message : "billing : Pincode feild is Invalid"})
             }
         }
+    }
     }         
     }
     //=========================================Updating Profile Image==============================================================
