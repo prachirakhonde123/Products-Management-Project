@@ -3,7 +3,7 @@ const {uploadFile} = require('../Aws/aws')
 const { isValidEmail, isValidName, isValidBody, isValidPassword, isvalidPhone, isvalidPincode,isValid, isvalidObjectId} = require('../Validations/validator')
 //const aws = require('aws-sdk')
 const bcrypt = require('bcrypt')
-
+const jwt = require('jsonwebtoken')
 
 //=========================================== Create or Register User ==============================================
 
@@ -164,7 +164,7 @@ const getProfile = async (req, res) => {
       const userIdFromToken = req.userId;
   
       //validation starts
-      if (!validator.isValidObjectId(userId)) {
+      if (!isvalidObjectId(userId)) {
         return res.status(400).send({ status: false, message: "Invalid userId in params." });
       }
 
@@ -175,9 +175,9 @@ const getProfile = async (req, res) => {
       }
   
       //Authentication & authorization
-      if (findUserProfile._id.toString() != userIdFromToken) {
-        return res.status(401).send({status: false,message: `Unauthorized access! User's info doesn't match`,});
-      }
+    //   if (findUserProfile._id.toString() != userIdFromToken) {
+    //     return res.status(401).send({status: false,message: `Unauthorized access! User's info doesn't match`,});
+    //   }
   
       return res.status(200).send({status: true,message: "Profile found successfully.",data: findUserProfile,});
     } 
@@ -205,23 +205,92 @@ const updateuser = async function(req,res){
     }
 
     if(fname ||lname ||email||profileImage || phone ||password ||address){
-          if(!isValidName(fname)) {
+          if(fname){
+            if(!isValidName(fname)) {
               return res.status(400).send({ status: false, message: "please enter valid fname" })
 
           }
+        }
+        if(lname){
           if(!isValidName(lname)) {
               return res.status(400).send({ status: false, message: "please enter valid lname" })
 
           }
+        }
+
+        if(email){
           if(!isValidEmail(email)) {
               return res.status(400).send({ status: false, message: "please enter valid email" })
 
           }
+        }
+     
+        if(password){
+            if(!isValidPassword(password)) return res.status(400).send({status : false, message : "Password must contains one Uppercase,Lowercase,special character,number"})
+}
+
+        if(phone){
           if(!isvalidPhone(phone)){
               return res.status(400).send({ status: false, message: "please enter valid Mobile numbr" })
           }
+        }
+
+        if(address.shipping){
+            if(address.shipping.street){
+            if(!address.shipping.street){
+                return res.status(400).send({status : false, message : "Shipping : Steet feild is Mandatory"})
+            }
+            if(address.shipping.street){
+                if(!isValid(address.shipping.street)) return res.status(400).send({status : false, message : "Shipping : Steet feild is Invalid"})
+            }
+        }
+        if(address.shipping.city){
+            if(!address.shipping.city){
+                return res.status(400).send({status : false, message : "Shipping : City feild is Mandatory"})
+            }
+            if(address.shipping.city){
+                if(!isValid(address.shipping.city)) return res.status(400).send({status : false, message : "Shipping : City feild is Invalid"})
+            }
+        }
+        if(address.shipping.pincode){
+            if(!address.shipping.pincode){
+                return res.status(400).send({status : false, message : "Shipping : Pincode feild is Mandatory"})
+            }
+            if(address.shipping.pincode){
+                if(!isvalidPincode(address.shipping.pincode)) return res.status(400).send({status : false, message : "Shipping : Pincode feild is Invalid"})
+            }
+        }
+        }
+        if(address.billing){
+            if(address.billing.street){
+            if(!address.billing.street){
+                return res.status(400).send({status : false, message : "billing : Street feild is Mandatory"})
+            }
+            if(address.billing.street){
+                if(!isValid(address.billing.street)) return res.status(400).send({status : false, message : "billing : Street feild is Invalid"})
+            }
+        }
+        if(address.billing.street){
+            if(!address.billing.city){
+                return res.status(400).send({status : false, message : "billing : City feild is Mandatory"})
+            }
+            if(address.billing.city){
+                if(!isValid(address.billing.city)) return res.status(400).send({status : false, message : "billing : City feild is Invalid"})
+            }
+        }
+
+        if(address.billing.pincode){
+            if(!address.billing.pincode){
+                return res.status(400).send({status : false, message : "billing : Pincode feild is Mandatory"})
+            }
+            if(address.billing.pincode){
+                if(!isvalidPincode(address.billing.pincode)) return res.status(400).send({status : false, message : "billing : Pincode feild is Invalid"})
+            }
+        }
+    }
          
     }
+
 
     const update = await userModel.findOneAndUpdate({_id:user},{$set:{fname:fname , lname:lname,  email:email ,profileImage :profileImage , phone : phone ,password :password , address:address}},{new: true})
     if (!update) {
