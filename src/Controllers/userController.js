@@ -3,6 +3,7 @@ const {uploadFile} = require('../Aws/aws')
 const { isValidEmail, isValidName, isValidBody, isValidPassword, isvalidPhone, isvalidPincode,isValid, isvalidObjectId} = require('../Validations/validator')
 //const aws = require('aws-sdk')
 const bcrypt = require('bcrypt')
+const jwt = require('jsonwebtoken')
 
 
 //=========================================== Create or Register User ==============================================
@@ -135,12 +136,16 @@ const userLogin = async function(req,res){
           return res.status(400).send({ status: false, message: "Please provide Password to login" })
       }
       if (!isValidPassword(password)){
-          return res.status(400).send({ status: false, msg: "invalid password format" });
+          return res.status(400).send({ status: false, msg: "Invalid password format!" });
       }
-  
-      const findUser = await userModel.findOne({email:email,password:password})
-      if(!findUser)
-      return res.status(401).send({status:false,message:"Incorrect email or password"})
+
+    
+      const findUser = await userModel.findOne({email:email})
+      if(!findUser) return res.status(401).send({status:false,message:"Wrong Email! Invalid Credentials"})
+      
+      //Using comapre method of bcrypt to match the db password and password given by user
+      let validUser = await bcrypt.compare(password,findUser.password)
+      if(!validUser) return res.status(401).send({status : false, message : "Invalid Credentials! Wrong Password"})
   
       let token = jwt.sign({userId : findUser._id}
           ,"verysecretkeyofgroup27"
@@ -148,12 +153,28 @@ const userLogin = async function(req,res){
     
           let decode = jwt.decode(token,"verysecretkeyofgroup27")
   
-          res.status(201).send({status:true, message:"User logged in Successful", data :{userId ,token}})
+          res.status(201).send({status:true, message:"User logged in Successful", data :{token : token,userId : decode.userId}})
           
     } catch (error) {
-      
+        res.status(500).send({status : false, err : error.message})
     } 
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 //============================================ Get Profile Details ================================================
@@ -191,6 +212,7 @@ const getProfile = async (req, res) => {
 
 const updateuser = async function(req,res){
     let user = req.params.userId
+    let file = req.files
     if(!user){
       return res.status(400).send({status : false , message: "User id must be present!"})
     }
@@ -204,26 +226,113 @@ const updateuser = async function(req,res){
       return res.status(400).send({ status: false, message: "Mantodatry field  not present!" })
     }
 
-    if(fname ||lname ||email||profileImage || phone ||password ||address){
-          if(!isValidName(fname)) {
+    if(fname ||lname ||email || phone ||password ||address){
+          if(fname){
+            if(!isValidName(fname)) {
               return res.status(400).send({ status: false, message: "please enter valid fname" })
 
           }
+        }
+        if(lname){
           if(!isValidName(lname)) {
               return res.status(400).send({ status: false, message: "please enter valid lname" })
-
           }
+        }
+        
+        //===============================Updating email===============================================================
+        if(email){
           if(!isValidEmail(email)) {
               return res.status(400).send({ status: false, message: "please enter valid email" })
-
           }
+          //__________________Checking duplicate email_____________________________________
+          let checkEmail = await userModel.findOne({email : email})
+          if(checkEmail){
+            return res.status(409).send({status : false, message : "Email is already used!"})
+          }
+        }
+        
+        //===================================Updating Password=========================================================
+        if(password){
+            if(!isValidPassword(password)) return res.status(400).send({status : false, message : "Password must contains one Uppercase,Lowercase,special character,number"})
+            var bcryptPassword = await bcrypt.hash(password,10)
+        }
+        
+        //====================================updating Phone number====================================================
+        if(phone){
           if(!isvalidPhone(phone)){
               return res.status(400).send({ status: false, message: "please enter valid Mobile numbr" })
           }
-         
-    }
+          //___________________________Checking duplicate phone________________________________________________
+          let duplicatePhone = await userModel.findOne({phone : phone})
+          if(duplicatePhone){
+            return res.status(409).send({status : false, message : "Phone number is already used!"})
+          }
+        }
+        
+        //==========================================Updating shiiping Address==========================================
+        if(address.shipping){
+            if(address.shipping.street){
+            if(!address.shipping.street){
+                return res.status(400).send({status : false, message : "Shipping : Steet feild is Mandatory"})
+            }
+            if(address.shipping.street){
+                if(!isValid(address.shipping.street)) return res.status(400).send({status : false, message : "Shipping : Steet feild is Invalid"})
+            }
+        }
+        if(address.shipping.city){
+            if(!address.shipping.city){
+                return res.status(400).send({status : false, message : "Shipping : City feild is Mandatory"})
+            }
+            if(address.shipping.city){
+                if(!isValid(address.shipping.city)) return res.status(400).send({status : false, message : "Shipping : City feild is Invalid"})
+            }
+        }
+        if(address.shipping.pincode){
+            if(!address.shipping.pincode){
+                return res.status(400).send({status : false, message : "Shipping : Pincode feild is Mandatory"})
+            }
+            if(address.shipping.pincode){
+                if(!isvalidPincode(address.shipping.pincode)) return res.status(400).send({status : false, message : "Shipping : Pincode feild is Invalid"})
+            }
+        }
+        }
+        //================================================Updating Billing Address================================================
+        if(address.billing){
+            if(address.billing.street){
+            if(!address.billing.street){
+                return res.status(400).send({status : false, message : "billing : Street feild is Mandatory"})
+            }
+            if(address.billing.street){
+                if(!isValid(address.billing.street)) return res.status(400).send({status : false, message : "billing : Street feild is Invalid"})
+            }
+        }
+        if(address.billing.street){
+            if(!address.billing.city){
+                return res.status(400).send({status : false, message : "billing : City feild is Mandatory"})
+            }
+            if(address.billing.city){
+                if(!isValid(address.billing.city)) return res.status(400).send({status : false, message : "billing : City feild is Invalid"})
+            }
+        }
 
-    const update = await userModel.findOneAndUpdate({_id:user},{$set:{fname:fname , lname:lname,  email:email ,profileImage :profileImage , phone : phone ,password :password , address:address}},{new: true})
+        if(address.billing.pincode){
+            if(!address.billing.pincode){
+                return res.status(400).send({status : false, message : "billing : Pincode feild is Mandatory"})
+            }
+            if(address.billing.pincode){
+                if(!isvalidPincode(address.billing.pincode)) return res.status(400).send({status : false, message : "billing : Pincode feild is Invalid"})
+            }
+        }
+    }         
+    }
+    //=========================================Updating Profile Image==============================================================
+    if(file && file.length > 0){
+        var uploadImage = await uploadFile(file[0]);
+    }
+    
+
+    //====================================Updating Profile=======================================================================================
+    const update = await userModel.findOneAndUpdate({_id:user},{$set:{fname:fname , lname:lname,  email:email ,profileImage :uploadImage , phone : phone ,password :bcryptPassword , address:address}},{new: true})
     if (!update) {
       return res.status(400).send({ status: false, message: "userId not found" })
   }
