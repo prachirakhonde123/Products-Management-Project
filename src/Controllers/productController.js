@@ -389,12 +389,12 @@ const updateproduct = async function (req, res) {
 
     if (availableSizes) {
       //________If size is already Present in the product___________________
-      let size = await productModel.findOne({ _id: productId, availableSizes: availableSizes })
-      if (size) {
-        return res.status(409).send({ status: false, message: "This size already exists!" })
-      }
+      // let size = await productModel.findOne({ _id: productId, availableSizes: availableSizes })
+      // if (size) {
+      //   return res.status(409).send({ status: false, message: "This size already exists!" })
+      // }
       //_____________Wrong size is given_______________________________________
-      let sizesArray = availableSizes.split(",").map((x) => x.trim());
+      var sizesArray = availableSizes.split(",").map((x) => x.trim());
       for (let i = 0; i < sizesArray.length; i++) {
         if (!["S", "XS", "M", "X", "L", "XXL", "XL"].includes(sizesArray[i])) {
           return res
@@ -414,7 +414,7 @@ const updateproduct = async function (req, res) {
     $set: {
       title: title, description: description, price: price,
       isFreeShipping: isFreeShipping, productImage: productImage, style: style, installments: installments
-    }, $push: { availableSizes: availableSizes }
+    }, $addToSet: { availableSizes:{ $each :sizesArray }  }
   }, { new: true })
 
   if (!updatepd) {
