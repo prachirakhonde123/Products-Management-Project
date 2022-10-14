@@ -1,6 +1,6 @@
 const productModel = require('../Models/productModel')
 const uploadFile = require('../Aws/aws')
-const { validInstallment, isValidBody, isValid, validString } = require('../Validations/validator')
+const { validInstallment, isValidBody, isValid, validString,isvalidObjectId } = require('../Validations/validator')
 const currencySymbol = require('currency-symbol-map')
 
 
@@ -121,14 +121,14 @@ const productCreate = async function (req, res) {
     
     //______________________________________________Validation for isFreeShipping___________________________________________
     if (isFreeShipping) {
-      if (!(isFreeShipping != true)) {
+      if (!(isFreeShipping != true || isFreeShipping != false )) {
         return res
           .status(400)
           .send({
             status: false,
             message: "isFreeShipping must be a boolean value",
           });
-      }
+      }  
     }
     
     //_____________________________________________________Converting image into Link______________________________________________________
@@ -214,8 +214,9 @@ const getProductsByQuery = async function (req, res) {
     }
     
     //_____________________If priceGreterThan key is given_____________________
-    if (query.priceGreaterThan) {
+    if (Object.keys(query.priceGreaterThan) == 0) {
       filter.price = { $gt: Number(query.priceGreaterThan) }
+      return res.send("absence of price greater than!")
     }
     
     //____________________If priceLessThan key is given_____________________________

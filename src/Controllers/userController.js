@@ -52,7 +52,16 @@ const registerUser = async function(req,res){
 
 
     //____________________________________Validation for Shipping Address_______________________________________________________
+    // if(address){
+        if (!address) {
+            return res.status(400).send({status:false , message: "address is missing"})
+        }
+      if(!address.shipping){
+                return res.status(400).send({status:false , message: "address.shipping is missing"})
+            }
     if(address.shipping){
+       
+          
         if(!address.shipping.street){
             return res.status(400).send({status : false, message : "Shipping : Steet feild is Mandatory"})
         }
@@ -65,14 +74,20 @@ const registerUser = async function(req,res){
         if(address.shipping.city){
             if(!isValid(address.shipping.city)) return res.status(400).send({status : false, message : "Shipping : City feild is Invalid"})
         }
+      
         if(!address.shipping.pincode){
             return res.status(400).send({status : false, message : "Shipping : Pincode feild is Mandatory"})
         }
         if(address.shipping.pincode){
             if(!isvalidPincode(address.shipping.pincode)) return res.status(400).send({status : false, message : "Shipping : Pincode feild is Invalid"})
         }
-    }
+       
+        }
+    
     //______________________________________Validation for Billing Address__________________________________________
+   if(!address.billing){
+    return res.status(400).send({status:false , message: "address.billing is missing"})
+   }
     if(address.billing){
         if(!address.billing.street){
             return res.status(400).send({status : false, message : "billing : Steet feild is Mandatory"})
@@ -92,8 +107,9 @@ const registerUser = async function(req,res){
         if(address.billing.pincode){
             if(!isvalidPincode(address.billing.pincode)) return res.status(400).send({status : false, message : "billing : Pincode feild is Invalid"})
         }
-    }
    
+
+
     // Encrypting Password 
     let securedPass = await bcrypt.hash(password,10)
     data.password = securedPass //updating key 
@@ -108,11 +124,10 @@ const registerUser = async function(req,res){
     else{
         res.status(400).send({ msg: "No file found" });
     }
-}
+    }}
 catch(err){
     res.status(500).send({message : "Server Error", err : err.message})
-  }   
-}
+  }   }
 
 //===================================================== Login User ======================================================
 
@@ -270,6 +285,7 @@ const updateuser = async function(req,res){
         //==========================================Updating shiiping Address==========================================
        if(address){ 
         if(address.shipping){
+            
             if(address.shipping.street){
             if(!address.shipping.street){
                 return res.status(400).send({status : false, message : "Shipping : Steet feild is Mandatory"})
@@ -294,6 +310,7 @@ const updateuser = async function(req,res){
                 if(!isvalidPincode(address.shipping.pincode)) return res.status(400).send({status : false, message : "Shipping : Pincode feild is Invalid"})
             }
         }
+        return res.status(400).send("addresss shipping is mandatory")
         }
         //================================================Updating Billing Address================================================
         if(address.billing){
@@ -322,6 +339,7 @@ const updateuser = async function(req,res){
                 if(!isvalidPincode(address.billing.pincode)) return res.status(400).send({status : false, message : "billing : Pincode feild is Invalid"})
             }
         }
+      
     }
     }         
     }
@@ -341,5 +359,5 @@ const updateuser = async function(req,res){
 
 }
 
-module.exports = {registerUser,userLogin,getProfile,updateuser}
+module.exports = {registerUser,userLogin,getProfile,updateuser};
 
