@@ -11,9 +11,9 @@ const isValidBody = function (data) {
 
 const isValid = function (value) {
   if (typeof value !== "string")   return false
-  if (typeof value === 'string' && value.trim().length === 0) return false   
-  if (typeof value === 'undefined' || value === null) return false     
-  return true;
+  if (typeof value === 'undefined' || value === null) return false 
+  if (typeof value === 'string' && value.trim().length === 0) return false       
+  if (typeof value === "string") return true;
 };
 
 
@@ -62,9 +62,16 @@ const validInstallment = function isInteger(value) {
   if (value < 0) return false
   if (value % 1 == 0) return true;
 }
+
+
 const validString = function(value) {
   if (typeof value === 'string' && value.trim().length === 0) return false //it checks whether the string contain only space or not 
   return true;
 }
 
-module.exports = {validInstallment, isValidEmail, isValidName, isValidBody,validString, isValidPassword, isvalidPhone, isvalidPincode,isValid,isvalidObjectId};
+const isValidPrice = (price) => {
+  return /^[1-9]\d{0,7}(?:\.\d{1,2})?$/.test(price)
+}
+
+
+module.exports = {validInstallment, isValidEmail, isValidName, isValidBody,validString, isValidPassword, isvalidPhone, isvalidPincode,isValid,isvalidObjectId,isValidPrice};
