@@ -28,7 +28,7 @@ const verifyToken = function (req, res, next) {
             }
             else{
                 req.tokenId = decodedToken.userId
-                console.log(decodedToken.userId)
+                // console.log(decodedToken.userId)
                 next()
             }
         })
@@ -43,9 +43,9 @@ const verifyToken = function (req, res, next) {
   const authorisation = async function (req, res, next) {
     try {
         let userId = req.params.userId
-        console.log(userId)
+        //console.log(userId)
         let validUser = req.tokenId // userid from token
-        console.log(validUser)
+        // console.log(validUser)
 
         if (!mongoose.isValidObjectId(userId)) {
             return res.status(400).send({ status: false, message: "Invalid Format of User Id" })

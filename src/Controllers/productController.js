@@ -1,6 +1,6 @@
 const productModel = require('../Models/productModel')
 const uploadFile = require('../Aws/aws')
-const { validInstallment, isValidBody, isValid, validString,isvalidObjectId } = require('../Validations/validator')
+const { validInstallment, isValidBody, isValid, validString,isvalidObjectId, isValidPrice, isValidPassword} = require('../Validations/validator')
 const currencySymbol = require('currency-symbol-map')
 
 
@@ -31,6 +31,9 @@ const productCreate = async function (req, res) {
       installments,
     } = requestBody;
 
+     if(!(title && description && price && currencyId && currencyFormat && availableSizes ) && (!files)){
+      return res.status(400).send({ status: false, msg: "All fields are mandatory." })
+     }
     //____________________________________________Validation for Title_____________________________________
 
     if (!isValid(title)) {
@@ -72,6 +75,12 @@ const productCreate = async function (req, res) {
         .status(400)
         .send({ status: false, message: "Price is required" });
     }
+
+    if(!isValidPrice(price)){
+      return res
+      .status(400)
+      .send({status : false, message : "Price should be in Number or Decimal"}) 
+    }
     
     //_________________________________________Validation for CurrencyId_________________________________-
     if (!isValid(currencyId)) {
@@ -79,6 +88,7 @@ const productCreate = async function (req, res) {
         .status(400)
         .send({ status: false, message: "currencyId is required" });
     }
+
     if (currencyId != "INR") {
       return res
         .status(400)
@@ -88,12 +98,16 @@ const productCreate = async function (req, res) {
     //____________________________________________Validation for Currency Format_________________________________
     if (!isValid(currencyFormat)) {
       currencyFormat = currencySymbol("INR");
+      return res
+        .status(400)
+        .send({ status: false, message: "currencyFormat is required" });
     }
     currencyFormat = currencySymbol("INR");
     
     //_______________________________________________Validation for Style_____________________________________________
     if (style) {
-      if (!validString(style)) {
+     
+      if (!validString) {  // style ma
         return res
           .status(400)
           .send({ status: false, message: "style is required" });
@@ -121,6 +135,7 @@ const productCreate = async function (req, res) {
     
     //______________________________________________Validation for isFreeShipping___________________________________________
     if (isFreeShipping) {
+     
       if (!(isFreeShipping != true || isFreeShipping != false )) {
         return res
           .status(400)
@@ -150,8 +165,8 @@ const productCreate = async function (req, res) {
 
     //________________________________Validating sizes to take multiple sizes at a single attempt____________________________
     if (availableSizes) {
+      availableSizes = availableSizes.toUpperCase()
       let sizesArray = availableSizes.split(",").map((x) => x.trim());
-
       for (let i = 0; i < sizesArray.length; i++) {
         if (!["S", "XS", "M", "X", "L", "XXL", "XL"].includes(sizesArray[i])) {
           return res
@@ -193,11 +208,19 @@ const productCreate = async function (req, res) {
 
 const getProductsByQuery = async function (req, res) {
   try {
+    //let {priceGreaterThan, priceLessThan, name, size} = req.query
     let query = req.query
+    let validQuery = Object.keys(query)
+    let validFilter = ['priceGreaterThan','priceLessThan','name','size','priceSort']
     let filter = {}
+
+    for(let i = 0; i < validQuery.length; i++){
+    if(!validFilter.includes(validQuery[i])){
+      return res.status(400).send({status : false, message : "Please provide valid Query to filter Data"})
+    }}
     
     //___________________If size is given_____________________
-    if (query.size) {
+    if(query.size){
       query.size = query.size.toUpperCase()
       let arr = ['S', 'XS', 'M', 'X', 'L', 'XXL', 'XL']
       let size1 = query['size'].split(",")
@@ -208,28 +231,31 @@ const getProductsByQuery = async function (req, res) {
     }
 
     //__________________If name is given______________________________
-    if (query.name) {
-      if (!isValid(query.name)) return res.status(400).send({ status: false, message: "Invalid format of name" })
+    if(query.name){
+      if(!isValid(query.name)) return res.status(400).send({ status: false, message: "Invalid format of name" })
       filter.title = { $regex: query.name, $options: 'i' }
     }
     
     //_____________________If priceGreterThan key is given_____________________
-    if (Object.keys(query.priceGreaterThan) == 0) {
-      filter.price = { $gt: Number(query.priceGreaterThan) }
-      return res.send("absence of price greater than!")
+    if (query.priceGreaterThan) {
+      if(!isValidPrice(query.priceGreaterThan)) return res.status(400).send({ status: false, message: "Please Provide Valid Price" })
+      filter.price = { $gt: parseFloat(query.priceGreaterThan) }
     }
     
     //____________________If priceLessThan key is given_____________________________
     if (query.priceLessThan) {
-      filter.price = { $lt: Number(query.priceLessThan) }
+      if(!isValidPrice(query.priceLessThan)) return res.status(400).send({ status: false, message: "Please Provide Valid Price" })
+      filter.price = { $lt: parseFloat(query.priceLessThan) }
     }
 
     //_________________If priceGreterThan and priceLessThan is given__________________________
     if (query.priceGreaterThan && query.priceLessThan) {
-      filter.price = { $lt: Number(query.priceLessThan), $gt: Number(query.priceGreaterThan) }
+      if(!isValidPrice(query.priceGreaterThan) && (!isValidPrice(query.priceLessThan)))
+      return res.status(400).send({ status: false, message: "Please Provide Valid Price" })
+      filter.price = { $lt: parseFloat(query.priceLessThan), $gt: parseFloat(query.priceGreaterThan) }
     }
     
-    let findProduct = await productModel.find({ $and: [filter, { isDeleted: false }] }).sort({ price: query.priceSort })
+    let findProduct = await productModel.find({ $and: [filter, { isDeleted: false }] }).sort({ price: query.priceSort }).select({__v : 0})
     if (findProduct.length === 0) {
       return res.status(404).send({ status: true, message: "No product found" })
     }
@@ -360,7 +386,7 @@ const updateproduct = async function (req, res) {
     //________________________________Converting profileImage into S3 Link__________________________________________
     if (productImage) {
       if (file && file.length > 0) {
-        var uploadImage = await uploadFile(file[0]);
+        var uploadImage = await uploadFile.uploadFile(file[0]);
       }
     }
 
@@ -388,12 +414,8 @@ const updateproduct = async function (req, res) {
     //__________________________________________Updating Sizes of Product_______________________________________________
 
     if (availableSizes) {
-      //________If size is already Present in the product___________________
-      // let size = await productModel.findOne({ _id: productId, availableSizes: availableSizes })
-      // if (size) {
-      //   return res.status(409).send({ status: false, message: "This size already exists!" })
-      // }
       //_____________Wrong size is given_______________________________________
+      availableSizes = availableSizes.toUpperCase()
       var sizesArray = availableSizes.split(",").map((x) => x.trim());
       for (let i = 0; i < sizesArray.length; i++) {
         if (!["S", "XS", "M", "X", "L", "XXL", "XL"].includes(sizesArray[i])) {
@@ -413,8 +435,8 @@ const updateproduct = async function (req, res) {
   const updatepd = await productModel.findOneAndUpdate({ _id: productId }, {
     $set: {
       title: title, description: description, price: price,
-      isFreeShipping: isFreeShipping, productImage: productImage, style: style, installments: installments
-    }, $addToSet: { availableSizes:{ $each :sizesArray }  }
+      isFreeShipping: isFreeShipping, productImage:uploadImage, style: style, installments: installments
+    }, $addToSet: { availableSizes : {$each : sizesArray }}
   }, { new: true })
 
   if (!updatepd) {
