@@ -108,9 +108,9 @@ const cartCreation = async function (req, res) {
           let updatedCart = {
             items: itemsArr,
             totalPrice: price,
-            totalItems: itemsArr.quantity,
+            totalItems: itemsArr.length,
           };
-
+          console.log(updatedCart);
           let responseData = await cartModel.findOneAndUpdate(
             { _id: findCartOfUser._id },
             updatedCart,
@@ -119,7 +119,7 @@ const cartCreation = async function (req, res) {
 
           return res.status(200).send({
             status: true,
-            message: `Product added successfully`,
+            message: `quanty  added successfully`,
             data: responseData,
           });
         }
@@ -129,8 +129,9 @@ const cartCreation = async function (req, res) {
       let updatedCart = {
         items: itemsArr,
         totalPrice: price,
-        totalItems: itemsArr.quantity,
+        totalItems: itemsArr.length,
       };
+      console.log(updatedCart);
       let responseData = await cartModel.findOneAndUpdate(
         { _id: findCartOfUser._id },
         updatedCart,
