@@ -135,12 +135,7 @@ const productCreate = async function (req, res) {
 
     //______________________________________________Validation for isFreeShipping___________________________________________
     if (isFreeShipping) {
-<<<<<<< HEAD
-     
-      if (!(isFreeShipping != true || isFreeShipping != false )) {
-=======
       if (!(isFreeShipping != true || isFreeShipping != false)) {
->>>>>>> 2dd365e4e2e316a49a218b83930aec11189ddf4c
         return res
           .status(400)
           .send({
