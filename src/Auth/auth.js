@@ -13,7 +13,7 @@ const verifyToken = function (req, res, next) {
       next();
     } 
     else {
-      res.sendStatus(403);
+      res.status(403).send({status : false, message : "Provide Token!"});
     }
   }
 

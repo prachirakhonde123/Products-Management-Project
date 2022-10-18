@@ -14,7 +14,7 @@ const {
   deleteProduct,
 } = require("../Controllers/productController");
 const { verifyToken, authentication, authorisation } = require("../Auth/auth");
-const { cartCreation ,updateCart,getCart,deleteUser} = require("../controllers/cartController");
+const { myCart , updateCart, getCart, deleteCart} = require("../controllers/cartController");
 
 router.get("/test-me", function (req, res) {
   res.send("working");
@@ -45,10 +45,13 @@ router.get("/products/:productId", getProductsById);
 router.put("/products/:productId", updateproduct);
 router.delete("/products/:productId", deleteProduct);
 
-router.post("/users/:userId/cart", cartCreation);
-router.put('/users/:userId/cart',updateCart )
-router.get('/users/:userId/cart',getCart )
-router.delete('/users/:userId/cart', deleteUser)
+//router.post("/users/:userId/cart", cartCreation);
+
+router.post("/users/:userId/cart", myCart)
+router.get("/users/:userId/cart", getCart)
+router.put("/users/:userId/cart",verifyToken,authentication,authorisation,updateCart)
+router.delete("/users/:userId/cart",deleteCart)
+
 //======================== to check if the endpoint is correct or not =========================================
 router.all("/**", function (req, res) {
   res.status(400).send({
