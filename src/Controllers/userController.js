@@ -1,6 +1,6 @@
 const userModel = require('../Models/userModel')
-const uploadFile= require('../Aws/aws')
-const { isValidEmail, isValidName, isValidBody, isValidPassword, isvalidPhone, isvalidPincode, isValid, isvalidObjectId } = require('../Validations/validator')
+const { uploadFile } = require('../Aws/aws')
+const { isValidEmail, isValidName, isValidBody, isValidPassword, isvalidPhone, isvalidPincode, isValid, isvalidObjectId,validImage } = require('../Validations/validator')
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
 
@@ -53,61 +53,41 @@ const registerUser = async function (req, res) {
         
         //_____________________________________If address field is not given__________________________________________________
 
-        if (!address) {
-            return res.status(400).send({ status: false, message: "Please Provide Address :)" })
-        }
+       
+        if (!address || Object.keys(address).length === 0) {
+            return res
+              .status(400)
+              .send({ status: false, message: "Address is required" });
+          }
 
-        //____________________________________Validation for Shipping Address_______________________________________________________
+        const addresses = JSON.parse(address);
 
-        if (!address.shipping) {
-            return res.status(400).send({ status: false, message: "Please Provide Shipping Address"})
-        }
-        if (address.shipping) {
-            if (!address.shipping.street) {
-                return res.status(400).send({ status: false, message: "Shipping : Steet feild is Mandatory" })
-            }
-            if (address.shipping.street) {
-                if (!isValid(address.shipping.street)) return res.status(400).send({ status: false, message: "Shipping : Steet feild is Invalid" })
-            }
-            if (!address.shipping.city) {
-                return res.status(400).send({ status: false, message: "Shipping : City feild is Mandatory" })
-            }
-            if (address.shipping.city) {
-                if (!isValid(address.shipping.city)) return res.status(400).send({ status: false, message: "Shipping : City feild is Invalid" })
-            }
+        if (
+            !addresses.shipping ||
+            (addresses.shipping &&
+              (!addresses.shipping.street ||
+                !addresses.shipping.city ||
+                !addresses.shipping.pincode))
+          ) {
+            return res
+              .status(400)
+              .send({ status: false, message: "Shipping Address is required" });
+          }
 
-            if (!address.shipping.pincode) {
-                return res.status(400).send({ status: false, message: "Shipping : Pincode feild is Mandatory" })
-            }
-            if (address.shipping.pincode) {
-                if (!isvalidPincode(address.shipping.pincode)) return res.status(400).send({ status: false, message: "Shipping : Pincode feild is Invalid" })
-            }
-        }
-
-        //______________________________________Validation for Billing Address__________________________________________
-        if (!address.billing) {
-            return res.status(400).send({ status: false, message: "Please Provide Billing Address" })
-        }
-        if(address.billing) {
-            if (!address.billing.street) {
-                return res.status(400).send({ status: false, message: "Billing : Steet feild is Mandatory" })
-            }
-            if (address.billing.street) {
-                if (!isValid(address.billing.street)) return res.status(400).send({ status: false, message: "Billing : Steet feild is Invalid" })
-            }
-            if (!address.billing.city) {
-                return res.status(400).send({ status: false, message: "Billing : City feild is Mandatory" })
-            }
-            if (address.billing.city) {
-                if (!isValid(address.billing.city)) return res.status(400).send({ status: false, message: "Billing : City feild is Invalid" })
-            }
-            if (!address.billing.pincode) {
-                return res.status(400).send({ status: false, message: "Billing : Pincode feild is Mandatory" })
-            }
-            if (address.billing.pincode) {
-                if (!isvalidPincode(address.billing.pincode)) return res.status(400).send({ status: false, message: "Billing : Pincode feild is Invalid" })
-            }
-        }
+          if (
+            !addresses.billing ||
+            (addresses.billing &&
+              (!addresses.billing.street ||
+                !addresses.billing.city ||
+                !addresses.billing.pincode))
+          ) {
+            return res
+              .status(400)
+              .send({ status: false, message: "Billing Address is required" });
+          }
+      
+          data.address = addresses;
+      
 
         //___________________Encrypting Password____________________________________
         let securedPass = await bcrypt.hash(password, 10)
@@ -126,9 +106,11 @@ const registerUser = async function (req, res) {
         if (file && file.length > 0) {
             let uploadImage = await uploadFile(file[0]);
             data.profileImage = uploadImage
-            const createUser = await userModel.create(data)
-            res.status(201).send({ status: true, message: "User registered succesfully", data: createUser });
+            if(!validImage(data.profileImage)) return res.status(400).send({ status : false, message : "Invalid format of image"})
         }
+
+        const createUser = await userModel.create(data)
+        res.status(201).send({ status: true, message: "User registered succesfully", data: createUser });
     }
 
     catch (err) {
@@ -228,6 +210,7 @@ const updateuser = async function (req, res) {
     if(file && file.length > 0) {
         var uploadImage = await uploadFile(file[0]);
         obj.profileImage = uploadImage
+        if(!validImage(obj.profileImage)) return res.status(400).send({ status: false, message: "Please provide valid format of image" })
     }
 
     let { fname, lname, email, phone, password, address } = req.body
