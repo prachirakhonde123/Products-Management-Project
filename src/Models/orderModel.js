@@ -33,9 +33,10 @@ const orderSchema = new mongoose.Schema({
         default: true
       },
       status :{
-        type:String,
+        type:[String],
+        enum : ['pending', 'completed', 'cancled'],
         default: 'pending',
-         enum : [pending, completed, cancled]
+       //  enum : [pending, completed, cancled]
       },
       deletedAt: {type : Date , default: null }, 
       isDeleted: {type: Boolean, default: false},
@@ -43,4 +44,4 @@ const orderSchema = new mongoose.Schema({
     }, { timestamps: true }
 )
 
-module.exports = mongoose.model("Product", orderSchema);
+module.exports = mongoose.model("order", orderSchema);
