@@ -84,6 +84,12 @@ const validQuantity = function isInteger(value) {
   if (value % 1 == 0) return true;
 };
 
+
+const validImage = function(image){
+  return /(\.jpg|\.jpeg|\.bmp|\.gif|\.png)$/.test(image)
+}
+
+
 module.exports = {
   validInstallment,
   isValidEmail,
@@ -97,4 +103,5 @@ module.exports = {
   isvalidObjectId,
   isValidPrice,
   validQuantity,
+  validImage
 };

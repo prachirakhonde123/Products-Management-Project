@@ -152,7 +152,7 @@ const myCart = async function(req,res){
   let userId = req.params.userId
   let data = req.body
   const {productId, cartId} = data
-  const cartData = {}
+  //const cartData = {}
 
   if(!isValidBody(data)) return res.status(400).send({status : false, message : "Body can't be empty"})
 
@@ -198,8 +198,10 @@ const myCart = async function(req,res){
     }
     
     //_____________________________________Cart is already Present______________________________________
+
+
     else{
-      if(!cartId) return res.status(400).send({status : false, message : "Provide cartId"})
+      if(!cartId) return res.status(400).send({status : false, message : "User already has Cart. Provide CartId to add Products!"})
 
       if(!isValidObjectId(cartId)) return res.status(400).send({status : false, message : "Invalid cartId"})
       
@@ -283,13 +285,11 @@ const updateCart = async function(req,res){
 
   if(!isvalidObjectId(cartId)) return res.status(400).send({status : false, message : "Invalid cartId"})
 
-  //if(!removeProduct) return res.status(400).send({status : false, message : "Please provide removeProduct key!"})
-
   
   //_________________________________________Wrong value of removeProduct is given___________________________________________
 
   if(!(removeProduct == 0 || removeProduct == 1)){
-      return res.status(400).send({status : false, message : "RemoveProduct should be either 0 or 1"})
+      return res.status(400).send({status : false, message : "RemoveProduct key is mandatory and it should be either 0 or 1"})
   }
 
   //__________________________________________Finding Product__________________________________________________________________
@@ -365,18 +365,18 @@ const updateCart = async function(req,res){
           }
       }
 
-      //______________________No product found with given ProductId__________________________________
-      else{
-        return res.status(404).send({status : false, message : "No such a product find in Cart"})
-      }
-
   }//For loop ends
+
+
+  //______________________No product found with given ProductId__________________________________
+  
+    return res.status(404).send({status : false, message : "No such a product find in Cart"})
+  
 
 }
 
-
-  catch(err){
-    res.status(404).send({status : false, message : err.message})
+catch(err){
+  res.status(404).send({status : false, message : err.message})
   }
 
 }

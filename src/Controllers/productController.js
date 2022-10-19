@@ -1,6 +1,6 @@
 const productModel = require('../Models/productModel')
 const uploadFile = require('../Aws/aws')
-const { validInstallment, isValidBody, isValid, validString, isvalidObjectId, isValidPrice, isValidPassword, isValidName } = require('../Validations/validator')
+const { validInstallment, isValidBody, isValid, validString, isvalidObjectId, isValidPrice, isValidPassword, isValidName, validImage } = require('../Validations/validator')
 const currencySymbol = require('currency-symbol-map')
 
 
@@ -94,7 +94,9 @@ const productCreate = async function (req, res) {
 
     //____________________________________________Validation for Currency Format_________________________________
     if (!isValid(currencyFormat)) {
-      currencyFormat = currencySymbol("INR");
+      return res
+        .status(400)
+        .send({ status: false, message: "currencySymbol should be INR" });
     }
     currencyFormat = currencySymbol("INR");
 
@@ -325,17 +327,18 @@ const updateproduct = async function (req, res) {
   //__________________________________Updating ProductImage___________________________________________
 
   let file = req.files
-    if (file && file.length > 0) {
-      if (!isValidBody(file)) {
-        return res
-          .status(400)
-          .send({ status: false, message: "Please provide product image" });
-      }
-
-      productImage = await uploadFile.uploadFile(file[0]);
-      console.log(productImage)
-      obj.productImage = productImage
+  if (file && file.length > 0) {
+    if (!isValidBody(file)) {
+      return res
+        .status(400)
+        .send({ status: false, message: "Please provide product image" });
     }
+
+    productImage = await uploadFile.uploadFile(file[0]);
+    console.log(productImage)
+    obj.productImage = productImage
+    if (!validImage(obj.productImage)) return res.status(400).send({ status: false, message: "Invalid Format of Image" })
+  }
 
   //_________________________________________Validation Starts____________________________________________
   if ((title || description || price || isFreeShipping || style || availableSizes || installments)) {
