@@ -3,137 +3,9 @@ const orderModel = require('../Models/orderModel')
 const cartModel = require('../Models/cartModel')
 const {isValidBody, isvalidObjectId} = require('../Validations/validator')
 
-/*
-const orderCreation = async (req, res) => {
-  try {
-    const userId = req.params.userId;
-    const requestBody = req.body;
 
-    //validation for request body
-    if (!isValidBody(requestBody)) {
-      return res.status(400).send({
-        status: false,
-        message:
-          "Invalid request body. Please provide the the input to proceed.",
-      });
-    }
-    //Extract parameters
-    const { cartId, cancellable, status } = requestBody;
 
-    if (!userId) {
-      return res
-        .status(400)
-        .send({
-          status: false,
-          message: `userId must be present`,
-        });
-    }
-    //validating userId
-    if (!isvalidObjectId(userId)) {
-      return res
-        .status(400)
-        .send({ status: false, message: "Invalid userId in params." });
-    }
-
-    const searchUser = await userModel.findOne({ _id: userId });
-    if (!searchUser) {
-      return res
-        .status(400)
-        .send({ status: false, message: `user doesn't exists for ${userId}` });
-    }
-
-    if (!cartId) {
-      return res
-        .status(400)
-        .send({ status: false, message: `Cart doesn't exists for ${userId}` });
-    }
-    if (!isvalidObjectId(cartId)) {
-      return res
-        .status(400)
-        .send({ status: false, message: `Invalid cartId in request body.` });
-    }
-
-    //searching cart to match the cart by userId whose is to be ordered.
-    const searchCartDetails = await cartModel.findOne({
-      _id: cartId,
-      userId: userId,
-    });
-    if (!searchCartDetails) {
-      return res
-        .status(400)
-        .send({ status: false, message: `Cart doesn't belongs to ${userId}` });
-    }
-
-    //must be a boolean value.
-    if (cancellable) {
-      if (typeof cancellable != "boolean") {
-        return res.status(400).send({
-          status: false,
-          message: `Cancellable must be either 'true' or 'false'.`,
-        });
-      }
-    }
-
-    // must be either - pending , completed or cancelled.
-    if (status) {
-      if (!isValidStatus(status)) {
-        return res.status(400).send({
-          status: false,
-          message: `Status must be among ['pending','completed','cancelled'].`,
-        });
-      }
-    }
-
-    //verifying whether the cart is having any products or not.
-    if (!searchCartDetails.items.length) {
-      return res.status(202).send({
-        status: false,
-        message: `Order already placed for this cart. Please add some products in cart to make an order.`,
-      });
-    }
-
-    //adding quantity of every products
-    const reducer = (previousValue, currentValue) =>
-      previousValue + currentValue;
-
-    let totalQuantity = searchCartDetails.items
-      .map((x) => x.quantity)
-      .reduce(reducer);
-
-    //object destructuring for response body.
-    const orderDetails = {
-      userId: userId,
-      items: searchCartDetails.items,
-      totalPrice: searchCartDetails.totalPrice,
-      totalItems: searchCartDetails.totalItems,
-      totalQuantity: totalQuantity,
-      cancellable,
-      status,
-    };
-    const savedOrder = await orderModel.create(orderDetails);
-
-    //Empty the cart after the successfull order
-    await cartModel.findOneAndUpdate(
-      { _id: cartId, userId: userId },
-      {
-        $set: {
-          items: [],
-          totalPrice: 0,
-          totalItems: 0,
-        },
-      }
-    );
-
-    return res
-      .status(200)
-      .send({ status: true, message: "Order placed.", data: savedOrder });
-  } catch (err) {
-    return res.status(500).send({ status: false, message: err.message });
-  }
-};
-*/
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//============================================Creating Order===================================================
 
 
 const createorder = async function (req, res) {
@@ -144,24 +16,26 @@ const createorder = async function (req, res) {
   const { cartId, cancellable, status } = data
 
   if(!userid) {
-    return res.status(400).send({ status: false, message: "user id must be present!" })
+    return res.status(400).send({ status: false, message: "userId must be present!" })
   }
 
   if (!isvalidObjectId(userid)) {
-    return res.status(400).send({ status: false, message: "product id is not valid!" })
+    return res.status(400).send({ status: false, message: "userId is not valid!" })
   }
 
   if(!isValidBody(data)) return res.status(400).send({ status: false, message: "Body can't be Empty" })
 
   if(!cartId){
-    return res.status(400).send({ status: false, message: "cart id must be present!" })
+    return res.status(400).send({ status: false, message: "cartId must be present!" })
   }
 
   if(!isvalidObjectId(cartId)){
-    return res.status(400).send({ status: false, message: "Cart id is not valid!" })
+    return res.status(400).send({ status: false, message: "CartId is not valid!" })
 
   }
+  
 
+  //________________________________If status is not pending_______________________________________
   if(status) {
     if (![pending].includes(status)) {
       return res.status(400).send({ status: false, message: `Status could be only Pending` })
@@ -172,13 +46,17 @@ const createorder = async function (req, res) {
     obj.cancellable = true
   }
 
-  if(cancellable){
-    obj.cancellable = cancellable
+  //___________________________If wrong bollean value is given_____________________________________________
+  if (cancellable !== undefined && typeof cancellable !== "boolean") {
+    return res.status(400).send({ status: false, message: "Cancellable should Be True Or False Only" });
   }
+
+  obj.cancellable = cancellable
+  
 
   const existuser = await userModel.findOne({ _id: userid })
   if (!existuser) {
-    return res.status(400).send({ status: false, message: " user id doesn't exists!" })
+    return res.status(400).send({ status: false, message: " userId doesn't exists!" })
   }
 
   const cartp = await cartModel.findOne({ _id: cartId, userId : userid})
@@ -186,6 +64,7 @@ const createorder = async function (req, res) {
     return res.status(400).send({ status: false, message: "cart doesn't exists for such user!" })
   }
 
+  //_______________________Taking array of items in numberquality__________________________________
   let numberquality = cartp.items
 
   let count = 0;
@@ -193,7 +72,6 @@ const createorder = async function (req, res) {
     count = count + numberquality[i].quantity
   }
 
-  
   obj.userId = userid
   obj.items = cartp.items
   obj.totalPrice = cartp.totalPrice
@@ -203,10 +81,10 @@ const createorder = async function (req, res) {
   obj.status = "pending"
   obj.deletedAt = null
 
-  console.log(obj)
+  
   const create = await orderModel.create(obj)
 
-  //Empty the cart after the successfull order
+  //______________________________________Empty the cart after the successfull order___________________________________
   await cartModel.findOneAndUpdate(
     { _id: cartId, userId: userid },
     {
@@ -223,9 +101,9 @@ const createorder = async function (req, res) {
 }
 
 
+//===================================================Updating Order==================================================
 
 
-//////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 const updateOrder = async function (req, res) {
   try {
@@ -242,24 +120,51 @@ const updateOrder = async function (req, res) {
     if (!order) {
       return res.status(404).send({ status: false, message: "No Order Exists for this User" })
     }
+    
+    //__________________________________If wrong status is given____________________________________________
+    if(!(status == "completed" || status == "cancled")){
+      return res.status(400).send({status : false, message : "Status can be either completed or cancled"})
+    }
 
 
     //_______________________________________________If cancellable is true___________________________________________________
     if (order.cancellable == true) {
-      if (order.status == "pending") {
+      //__________________If status is completed________________________________________
+      if (order.status == "pending" && status == "completed") {
         const updatePending = await orderModel.findOneAndUpdate({ _id: orderId },
           { $set: { status: status } },
           { new: true })
           return res.status(200).send({ status: true, message: `Your order is ${status}`, data: updatePending })
       }
+      
+      //_____________________________If status is cancled______________________________
+      if(order.status == "pending" && status == "cancled"){
+        const updatePending = await orderModel.findOneAndUpdate({ _id: orderId },
+          { $set: { status: status } },
+          { new: true })
+        return res.status(200).send({status : true, message : "Your Order is Cancelled"})
+      }
+      
+      //_________________________If order is already completed________________________________________________
+      if(order.status == "completed" && status == "completed"){
+        return res.status(200).send({status : true, message : "Your Order is already Completed"})
+      }
+      
+      //__________________________If order is already cancelled__________________________________________________
+      if(order.status == "cancled" && status == "cancled"){
+        return res.status(200).send({status : true, message : "Your Order is already Cancelled"})
+      }
     }
 
     //________________________________________________If cancellable is false_______________________________________________
     if (order.cancellable == false) {
+
+      //__________________________Cannot cacncled order if cancellable is false__________________________
       if (status == "cancled" && order.status == "pending") {
         return res.status(200).send({ status: true, message: "You cannot delete the order as your order is Non-cancellable!" })
       }
-
+      
+      //__________________________If status is completed___________________________________________
       if (status == "completed" && order.status == "pending") {
         const updatePending = await orderModel.findOneAndUpdate({ _id: orderId },
           { $set: { status: status } },
@@ -276,7 +181,7 @@ const updateOrder = async function (req, res) {
 }
 
 
-
+//================================================Modules=================================================
 
 module.exports = {
   createorder,

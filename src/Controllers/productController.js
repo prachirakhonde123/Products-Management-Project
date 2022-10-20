@@ -1,10 +1,10 @@
 const productModel = require('../Models/productModel')
-const uploadFile = require('../Aws/aws')
-const { validInstallment, isValidBody, isValid, validString, isvalidObjectId, isValidPrice, isValidPassword, isValidName, validImage } = require('../Validations/validator')
-const currencySymbol = require('currency-symbol-map')
+const {uploadFile} = require('../Aws/aws')
+const { validInstallment, isValidBody, isValid, validString, isvalidObjectId, isValidPrice, validImage } = require('../Validations/validator')
 
 
 //=========================================Create Product================================================
+
 const productCreate = async function (req, res) {
   try {
     let files = req.files;
@@ -50,23 +50,11 @@ const productCreate = async function (req, res) {
       });
     }
 
-    //______________________________Uploading product image AWS_________________________________
-    if (files) {
-      if (isValidBody(files)) {
-        if (!(files && files.length > 0)) {
-          return res
-            .status(400)
-            .send({ status: false, message: "Please provide product image" });
-        }
-        productImage = await uploadFile.uploadFile(files[0]);
-      }
-    }
-
     //__________________________________________Validation for Description__________________________
     if (!isValid(description)) {
       return res
         .status(400)
-        .send({ status: false, message: "Description is required" });
+        .send({ status: false, message: "Description is required and it can't be empty" });
     }
 
     //_______________________________________________Validation for Price________________________________________
@@ -94,14 +82,15 @@ const productCreate = async function (req, res) {
         .status(400)
         .send({ status: false, message: "currencyId should be INR" });
     }
+    
 
-    //____________________________________________Validation for Currency Format_________________________________
-    if (!isValid(currencyFormat)) {
-      return res
-        .status(400)
-        .send({ status: false, message: "currencySymbol should be INR" });
+    //_______________________________________________Validation for currency format(₹)________________________________-
+    if(currencyFormat){
+      if(currencyFormat !== "₹"){
+        return res.status(400).send({status : false, message : `CurrenFormat should be "₹"`})
+      }
     }
-    currencyFormat = currencySymbol("INR");
+
 
     //_______________________________________________Validation for Style_____________________________________________
     if (style) {
@@ -109,7 +98,7 @@ const productCreate = async function (req, res) {
       if (!validString) {  // style ma
         return res
           .status(400)
-          .send({ status: false, message: "style is required" });
+          .send({ status: false, message: "style is in invalid format" });
       }
     }
 
@@ -118,9 +107,10 @@ const productCreate = async function (req, res) {
       if (!isValid(installments)) {
         return res
           .status(400)
-          .send({ status: false, message: "installments required" });
+          .send({ status: false, message: "installments can't be empty. Provide a number" });
       }
     }
+
     if (installments) {
       if (!validInstallment(installments)) {
         return res
@@ -145,15 +135,42 @@ const productCreate = async function (req, res) {
     }
 
     //_____________________________________________________Converting image into Link______________________________________________________
-    productImage = await uploadFile.uploadFile(files[0]);
 
-    //_______________________________________________Object destructuring for response body________________________________________
-    const newProductData = {
+    //______________________________I ProductImage is not given_________________________________
+    if(files) {
+      if (!(files && files.length > 0)) {
+        return res
+          .status(400)
+          .send({ status: false, message: "Please provide productImage" });
+      }
+    }
+
+
+    if(files && files.length > 0) {
+      //______________________If wrong key is given incase of ProductImage__________________________
+      if (files[0].fieldname !== "productImage") {
+        return res.status(400).send({ status: false, message: "Valid key is ProductImage. Please provide file with key productImage" });
+      }
+
+      var uploadImage = await uploadFile(files[0]);
+      productImage = uploadImage
+      if(!validImage(productImage)) return res.status(400).send({ status: false, message: "Please provide valid format of image i.e jpg,jpeg,png,gif" })
+    }
+
+    //__________________________________________If available sizes are not given_________________________________________________
+
+    if(!availableSizes){
+      return res.status(400).send({status : false, message : "Availablesizes are mandatory"})
+    }
+
+
+     //_______________________________________________Object destructuring for response body________________________________________
+     const newProductData = {
       title,
       description,
       price,
       currencyId,
-      currencyFormat: currencyFormat,
+      currencyFormat: "₹",
       isFreeShipping,
       style,
       availableSizes,
@@ -161,6 +178,7 @@ const productCreate = async function (req, res) {
       productImage: productImage,
     };
 
+   
     //________________________________Validating sizes to take multiple sizes at a single attempt____________________________
     if (availableSizes) {
       availableSizes = availableSizes.toUpperCase()
@@ -183,14 +201,13 @@ const productCreate = async function (req, res) {
       }
     }
 
-
     //_______________________________________________Creating Product______________________________________________________
     const saveProductDetails = await productModel.create(newProductData);
     return res
       .status(201)
       .send({
         status: true,
-        message: "Product added successfully.",
+        message: "Success",
         data: saveProductDetails,
       });
   } catch (err) {
@@ -259,7 +276,7 @@ const getProductsByQuery = async function (req, res) {
       return res.status(404).send({ status: true, message: "No product found" })
     }
 
-    return res.status(200).send({ status: true, message: "Products found", data: findProduct })
+    return res.status(200).send({ status: true, message: "Success", data: findProduct })
   }
 
   catch (err) {
@@ -291,7 +308,7 @@ const getProductsById = async function (req, res) {
 
     return res.status(200).send({
       status: true,
-      message: "Product found successfully",
+      message: "Success",
       data: product,
     });
 
@@ -306,6 +323,8 @@ const getProductsById = async function (req, res) {
 
 
 //======================================================Update the Products====================================================================
+
+
 
 const updateproduct = async function (req, res) {
   let productId = req.params.productId
@@ -322,11 +341,21 @@ const updateproduct = async function (req, res) {
   }
 
   //______________________Finding whether the product is deleted_________________________________
-  const checkprd = await productModel.findOne({ _id: productId, isDeleted: false })
+  const checkprd = await productModel.findOne({ _id: productId})
   if (!checkprd) {
-    return res.status(403).send({ status: false, message: "Product doesn't Exists!" })
+    return res.status(403).send({ status: false, message: "Product doesn't Exists with this productId!" })
   }
+  if(checkprd.isDeleted == true){
+    return res.status(403).send({ status: false, message: "Product is Deleted from store! You cannot update it" })
+  }
+
+  if(!isValidBody(req.body)){
+    return res.status(403).send({ status: false, message: "Please Provide data to update the product!" })
+  }
+
   let { title, description, price, isFreeShipping, productImage, style, availableSizes, installments } = req.body
+
+
 
   //__________________________________Updating ProductImage___________________________________________
 
@@ -338,13 +367,20 @@ const updateproduct = async function (req, res) {
         .send({ status: false, message: "Please provide product image" });
     }
 
+    //______________________If wrong key is given incase of ProfileImage__________________________
+    if (file[0].fieldname !== "productImage") {
+      return res.status(400).send({ status: false, message: "Valid key is ProductImage. Please provide file with key productImage" });
+    }
+
     productImage = await uploadFile.uploadFile(file[0]);
-    console.log(productImage)
     obj.productImage = productImage
+
+    //_______________________________If invalid format of image is given________________________
     if (!validImage(obj.productImage)) return res.status(400).send({ status: false, message: "Invalid Format of Image" })
   }
 
-  //_________________________________________Validation Starts____________________________________________
+  //############################################# Validation Starts ###################################################
+
   if ((title || description || price || isFreeShipping || style || availableSizes || installments)) {
 
     //_____________________________________Validating  title__________________________________________
@@ -393,7 +429,7 @@ const updateproduct = async function (req, res) {
       obj.isFreeShipping = isFreeShipping
     }
 
-    //________________________________________--Validating style______________________________________________________
+    //________________________________________--Validating style (Not mandatory)______________________________________________________
     if (style) {
       if (!validString(style)) {
         return res
@@ -427,14 +463,19 @@ const updateproduct = async function (req, res) {
     }
   }
 
-
-  const updatepd = await productModel.findOneAndUpdate({ _id: productId }, { $set: obj, $addToSet: obj1 }, { new: true })
+  
+  //___________________________________________Updating product____________________________________________________________________________
+  const updatepd = await productModel.findOneAndUpdate({ _id: productId }, { $set: obj, $addToSet: obj1 }, { new: true }).select({__v : 0})
   if (!updatepd) {
     return res.status(404).send({ status: false, message: "product id not found!" })
   }
 
-  return res.status(200).send({ status: true, message: updatepd })
+  return res.status(200).send({ status: true, message: "Success", data : updatepd })
 }
+
+
+
+
 //========================================================Delete Product by Id=================================================================
 
 const deleteProduct = async function (req, res) {
@@ -468,7 +509,7 @@ const deleteProduct = async function (req, res) {
     }
 
     //____________________________________If product is already deleted i.e isDeleted = true___________________
-    return res.status(400).send({ status: true, message: `Product has been already deleted.` });
+    return res.status(200).send({ status: true, message: `Product has been already deleted.` });
   }
 
   catch (err) {
@@ -479,7 +520,7 @@ const deleteProduct = async function (req, res) {
 };
 
 
-
+//==============================================modules=====================================================
 
 module.exports = { productCreate, getProductsByQuery, getProductsById, updateproduct, deleteProduct }
 
