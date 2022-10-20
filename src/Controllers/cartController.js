@@ -1,11 +1,7 @@
-const {
-  isValidBody,
-  isvalidObjectId,
-} = require("../validations/validator");
 const productModel = require("../Models/productModel");
 const userModel = require("../Models/userModel");
 const cartModel = require("../Models/cartModel");
-const { isValidObjectId } = require("mongoose");
+const {isValidBody,isvalidObjectId} = require('../Validations/validator')
 
 
 //======================================================Creating Cart=================================================
@@ -327,7 +323,6 @@ const deleteCart =  async function(req,res){
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 module.exports = {
- 
   myCart,
   updateCart,
   getCart,
