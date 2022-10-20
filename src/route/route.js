@@ -50,14 +50,14 @@ router.delete("/products/:productId", deleteProduct);
 
 //router.post("/users/:userId/cart", cartCreation);
 
-router.post("/users/:userId/cart", myCart)
-router.get("/users/:userId/cart", getCart)
+router.post("/users/:userId/cart",verifyToken, authentication, authorisation, myCart)
+router.get("/users/:userId/cart",verifyToken, authentication, authorisation, getCart)
 router.put("/users/:userId/cart",verifyToken,authentication,authorisation,updateCart)
-router.delete("/users/:userId/cart",deleteCart)
+router.delete("/users/:userId/cart",verifyToken,authentication,authorisation,deleteCart)
 
 
-router.post('/users/:userId/orders', createorder)
-router.put('/users/:userId/orders', updateOrder)
+router.post('/users/:userId/orders',verifyToken,authentication,authorisation, createorder)
+router.put('/users/:userId/orders',verifyToken, authentication, authorisation ,updateOrder)
 
 
 

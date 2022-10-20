@@ -216,14 +216,7 @@ const updateuser = async function (req, res) {
     let { fname, lname, email, phone, password, address } = req.body
     
     //====================================If body is empty======================================================================
-
-    if(!isValidBody(req.body) && (file.length == 0)){
-        return res.status(400).send({ status: false, message: "Please provide a data to update User" })
-    }
-
-
-    //===============================================Validation Starts================================================================
-
+    
     if (fname || lname || email || phone || password || address) {
         if (fname) {
             if (!isValidName(fname)) {
@@ -245,7 +238,7 @@ const updateuser = async function (req, res) {
             if (!isValidEmail(email)) {
                 return res.status(400).send({ status: false, message: "Please enter valid email" })
             }
-            //__________________Checking duplicate email_____________________________________
+            //_________________Checking duplicate email____________________________________
             let checkEmail = await userModel.findOne({ email: email })
             if (checkEmail) {
                 return res.status(409).send({ status: false, message: "Email is already used!" })
@@ -253,8 +246,8 @@ const updateuser = async function (req, res) {
             obj.email = email
         }
 
-        //===================================Updating Password=========================================================
-        if (password) {
+          //===================================Updating Password=========================================================
+          if (password) {
             if (!isValidPassword(password)) return res.status(400).send({ status: false, message: "Password must contains 8-15 characters" })
             let bcryptPassword = await bcrypt.hash(password, 10)
             obj.password = bcryptPassword
@@ -265,7 +258,7 @@ const updateuser = async function (req, res) {
             if (!isvalidPhone(phone)) {
                 return res.status(400).send({ status: false, message: "please enter valid Mobile numbr" })
             }
-            //___________________________Checking duplicate phone________________________________________________
+            //__________________________Checking duplicate phone_______________________________________________
             let duplicatePhone = await userModel.findOne({ phone: phone })
             if (duplicatePhone) {
                 return res.status(409).send({ status: false, message: "Phone number is already used!" })
@@ -274,76 +267,49 @@ const updateuser = async function (req, res) {
         }
 
         //==========================================Updating Address==========================================
-        if (address) {
-            if (address.shipping) {
-                if (address.shipping.street) {
-                    if (!address.shipping.street) {
-                        return res.status(400).send({ status: false, message: "Shipping : Steet feild is Mandatory" })
-                    }
-                    if (address.shipping.street) {
-                        if (!isValid(address.shipping.street)) return res.status(400).send({ status: false, message: "Shipping : Steet feild is Invalid" })
-                    }
-                    obj["address.shipping.street"]= address.shipping.street
-                }
-                if (address.shipping.city) {
-                    if (!address.shipping.city) {
-                        return res.status(400).send({ status: false, message: "Shipping : City feild is Mandatory" })
-                    }
-                    if (address.shipping.city) {
-                        if (!isValid(address.shipping.city)) return res.status(400).send({ status: false, message: "Shipping : City feild is Invalid" })
-                    }
-                    obj["address.shipping.city"]= address.shipping.city
-                }
-                if (address.shipping.pincode) {
-                    if (!address.shipping.pincode) {
-                        return res.status(400).send({ status: false, message: "Shipping : Pincode feild is Mandatory" })
-                    }
-                    if (address.shipping.pincode) {
-                        if (!isvalidPincode(address.shipping.pincode)) return res.status(400).send({ status: false, message: "Shipping : Pincode feild is Invalid" })
-                    }
-                    obj["address.shipping.pincode"]= address.shipping.pincode
-                }
-            }
-            if (address.billing) {
-                if (address.billing.street) {
-                    if (!address.billing.street) {
-                        return res.status(400).send({ status: false, message: "billing : Street feild is Mandatory" })
-                    }
-                    if (address.billing.street) {
-                        if (!isValid(address.billing.street)) return res.status(400).send({ status: false, message: "billing : Street feild is Invalid" })
-                    }
-                    obj["address.billing.street"]= address.billing.street
-                }
-                if (address.billing.city) {
-                    if(!address.billing.city) {
-                        return res.status(400).send({ status: false, message: "Billing : City feild is Mandatory" })
-                    }
-                    if (address.billing.city) {
-                        if (!isValid(address.billing.city)) return res.status(400).send({ status: false, message: "billing : City feild is Invalid" })
-                    }
-                    obj["address.billing.city"]= address.billing.city
-                }
-                if (address.billing.pincode) {
-                    if (!address.billing.pincode) {
-                        return res.status(400).send({ status: false, message: "billing : Pincode feild is Mandatory" })
-                    }
-                    if (address.billing.pincode) {
-                        if (!isvalidPincode(address.billing.pincode)) return res.status(400).send({ status: false, message: "billing : Pincode feild is Invalid" })
-                    }
-                    obj["address.billing.pincode"]= address.billing.pincode
-                }
-            }
-        }
-    }
 
-    //====================================Updating Profile=====================================================================================================================================================================
+        const addresses = JSON.parse(address);
+
+        if (
+            !addresses.shipping ||
+            (addresses.shipping &&
+              (!addresses.shipping.street ||
+                !addresses.shipping.city ||
+                !addresses.shipping.pincode))
+          ) {
+            return res
+              .status(400)
+              .send({ status: false, message: "Shipping Address is required" });
+          }
+
+          if (
+            !addresses.billing ||
+            (addresses.billing &&
+              (!addresses.billing.street ||
+                !addresses.billing.city ||
+                !addresses.billing.pincode))
+          ) {
+            return res
+              .status(400)
+              .send({ status: false, message: "Billing Address is required" });
+          }
+
+          obj.address = addresses;
+
+  //====================================Updating Profile=====================================================================================================================================================================
     const update = await userModel.findOneAndUpdate({_id : user},{$set : obj},{new : true}).select({__v : 0})
     if (!update) {
         return res.status(404).send({ status: false, message: "userId not found" })
     }
 
-    return res.status(200).send({ status: true, message: "User profile Updated Successfully :)", data: update })
+    return res.status(200).send({ status: true, message: "User profile Updated Successfully :)", data:update})
 }
+}
+
+
+
+
+
 
 module.exports = { registerUser, userLogin, getProfile, updateuser };
 
