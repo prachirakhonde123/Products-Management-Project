@@ -96,7 +96,7 @@ const createorder = async function (req, res) {
     }
   );
 
-    return res.status(201).send({ status: true, message: "Your Order is Created", data: create })
+    return res.status(201).send({ status: true, message: "Success", data: create })
 
 }
 
@@ -134,7 +134,7 @@ const updateOrder = async function (req, res) {
         const updatePending = await orderModel.findOneAndUpdate({ _id: orderId },
           { $set: { status: status } },
           { new: true })
-          return res.status(200).send({ status: true, message: `Your order is ${status}`, data: updatePending })
+          return res.status(200).send({ status: true, message: `Success`, data: updatePending })
       }
       
       //_____________________________If status is cancled______________________________

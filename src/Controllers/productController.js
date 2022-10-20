@@ -303,7 +303,7 @@ const getProductsById = async function (req, res) {
     }
 
     return res.status(200).send({
-      status: true,
+  status: true,
       message: "Success",
       data: product,
     });

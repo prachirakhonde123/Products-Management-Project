@@ -14,6 +14,7 @@ const myCart = async function(req,res){
 
   if(!isValidBody(data)) return res.status(400).send({status : false, message : "Body can't be empty"})
 
+  if(!productId)return res.status(400).send({status : false, message : "ProductId is mandatory"})
 
   if(!isvalidObjectId(userId)) return res.status(400).send({status : false, message : "Invalid userId"})
 
@@ -28,7 +29,7 @@ const myCart = async function(req,res){
   //_________________________________Finding Product______________________________________________________________________
   let product = await productModel.findOne({_id : productId})
   if(!product){
-    return res.status(404).send({status : false, message : "No product find with this UserId"})
+    return res.status(404).send({status : false, message : "No product find with this ProductId"})
   }
 
   if(product.isDeleted == true){
@@ -61,7 +62,7 @@ const myCart = async function(req,res){
     else{
       if(!cartId) return res.status(400).send({status : false, message : "User already has Cart. Provide CartId to add Products!"})
 
-      if(!isValidObjectId(cartId)) return res.status(400).send({status : false, message : "Invalid cartId"})
+      if(!isvalidObjectId(cartId)) return res.status(400).send({status : false, message : "Invalid cartId"})
       
       //___________________________Checking cart for valid user_______________________________________
       const userCart = await cartModel.findOne({_id : cartId, userId : userId})
@@ -81,7 +82,7 @@ const myCart = async function(req,res){
         {$inc : {totalPrice : +product.price, "items.$.quantity" : +1}},
         {new : true})
         
-        return res.status(200).send({status : true, message : "Success", data : updateData})
+        return res.status(201).send({status : true, message : "Success", data : updateData})
       }
       
       //__________________Adding new Product to Cart__________________________________________________________
@@ -97,7 +98,7 @@ const myCart = async function(req,res){
         totalItems : item},
         {new : true})
         
-        return res.status(200).send({status : true, message : "Success", data : addNewProduct})     
+        return res.status(201).send({status : true, message : "Success", data : addNewProduct})     
       }
     }
   }
