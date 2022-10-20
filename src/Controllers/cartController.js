@@ -1,8 +1,6 @@
 const {
   isValidBody,
-  isValid,
   isvalidObjectId,
-  validQuantity,
 } = require("../validations/validator");
 const productModel = require("../Models/productModel");
 const userModel = require("../Models/userModel");
@@ -10,15 +8,13 @@ const cartModel = require("../Models/cartModel");
 const { isValidObjectId } = require("mongoose");
 
 
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//======================================================Creating Cart=================================================
 
 const myCart = async function(req,res){
   try{
   let userId = req.params.userId
   let data = req.body
   const {productId, cartId} = data
-  //const cartData = {}
 
   if(!isValidBody(data)) return res.status(400).send({status : false, message : "Body can't be empty"})
 
