@@ -109,7 +109,7 @@ const updateOrder = async function (req, res) {
   try {
     let userId = req.params.userId
     let data = req.body
-    const { orderId, status } = data
+    const { orderId, status } = data 
 
     let user = await userModel.findById(userId)
     if (!user) {
