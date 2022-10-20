@@ -274,67 +274,95 @@ const updateuser = async function (req, res) {
         }
 
         //==========================================Updating Address==========================================
-        if (address) {
-            if (address.shipping) {
-                if (address.shipping.street) {
-                    if (!address.shipping.street) {
-                        return res.status(400).send({ status: false, message: "Shipping : Steet feild is Mandatory" })
-                    }
-                    if (address.shipping.street) {
-                        if (!isValid(address.shipping.street)) return res.status(400).send({ status: false, message: "Shipping : Steet feild is Invalid" })
-                    }
-                    obj["address.shipping.street"]= address.shipping.street
-                }
-                if (address.shipping.city) {
-                    if (!address.shipping.city) {
-                        return res.status(400).send({ status: false, message: "Shipping : City feild is Mandatory" })
-                    }
-                    if (address.shipping.city) {
-                        if (!isValid(address.shipping.city)) return res.status(400).send({ status: false, message: "Shipping : City feild is Invalid" })
-                    }
-                    obj["address.shipping.city"]= address.shipping.city
-                }
-                if (address.shipping.pincode) {
-                    if (!address.shipping.pincode) {
-                        return res.status(400).send({ status: false, message: "Shipping : Pincode feild is Mandatory" })
-                    }
-                    if (address.shipping.pincode) {
-                        if (!isvalidPincode(address.shipping.pincode)) return res.status(400).send({ status: false, message: "Shipping : Pincode feild is Invalid" })
-                    }
-                    obj["address.shipping.pincode"]= address.shipping.pincode
-                }
-            }
-            if (address.billing) {
-                if (address.billing.street) {
-                    if (!address.billing.street) {
-                        return res.status(400).send({ status: false, message: "billing : Street feild is Mandatory" })
-                    }
-                    if (address.billing.street) {
-                        if (!isValid(address.billing.street)) return res.status(400).send({ status: false, message: "billing : Street feild is Invalid" })
-                    }
-                    obj["address.billing.street"]= address.billing.street
-                }
-                if (address.billing.city) {
-                    if(!address.billing.city) {
-                        return res.status(400).send({ status: false, message: "Billing : City feild is Mandatory" })
-                    }
-                    if (address.billing.city) {
-                        if (!isValid(address.billing.city)) return res.status(400).send({ status: false, message: "billing : City feild is Invalid" })
-                    }
-                    obj["address.billing.city"]= address.billing.city
-                }
-                if (address.billing.pincode) {
-                    if (!address.billing.pincode) {
-                        return res.status(400).send({ status: false, message: "billing : Pincode feild is Mandatory" })
-                    }
-                    if (address.billing.pincode) {
-                        if (!isvalidPincode(address.billing.pincode)) return res.status(400).send({ status: false, message: "billing : Pincode feild is Invalid" })
-                    }
-                    obj["address.billing.pincode"]= address.billing.pincode
-                }
-            }
-        }
-    }
+
+        const addresses = JSON.parse(address);
+
+        if (
+            !addresses.shipping ||
+            (addresses.shipping &&
+              (!addresses.shipping.street ||
+                !addresses.shipping.city ||
+                !addresses.shipping.pincode))
+          ) {
+            return res
+              .status(400)
+              .send({ status: false, message: "Shipping Address is required" });
+          }
+
+          if (
+            !addresses.billing ||
+            (addresses.billing &&
+              (!addresses.billing.street ||
+                !addresses.billing.city ||
+                !addresses.billing.pincode))
+          ) {
+            return res
+              .status(400)
+              .send({ status: false, message: "Billing Address is required" });
+          }
+      
+          obj.address = addresses;
+    //     if (address) {
+    //         if (address.shipping) {
+    //             if (address.shipping.street) {
+    //                 if (!address.shipping.street) {
+    //                     return res.status(400).send({ status: false, message: "Shipping : Steet feild is Mandatory" })
+    //                 }
+    //                 if (address.shipping.street) {
+    //                     if (!isValid(address.shipping.street)) return res.status(400).send({ status: false, message: "Shipping : Steet feild is Invalid" })
+    //                 }
+    //                 obj["address.shipping.street"]= address.shipping.street
+    //             }
+    //             if (address.shipping.city) {
+    //                 if (!address.shipping.city) {
+    //                     return res.status(400).send({ status: false, message: "Shipping : City feild is Mandatory" })
+    //                 }
+    //                 if (address.shipping.city) {
+    //                     if (!isValid(address.shipping.city)) return res.status(400).send({ status: false, message: "Shipping : City feild is Invalid" })
+    //                 }
+    //                 obj["address.shipping.city"]= address.shipping.city
+    //             }
+    //             if (address.shipping.pincode) {
+    //                 if (!address.shipping.pincode) {
+    //                     return res.status(400).send({ status: false, message: "Shipping : Pincode feild is Mandatory" })
+    //                 }
+    //                 if (address.shipping.pincode) {
+    //                     if (!isvalidPincode(address.shipping.pincode)) return res.status(400).send({ status: false, message: "Shipping : Pincode feild is Invalid" })
+    //                 }
+    //                 obj["address.shipping.pincode"]= address.shipping.pincode
+    //             }
+    //         }
+    //         if (address.billing) {
+    //             if (address.billing.street) {
+    //                 if (!address.billing.street) {
+    //                     return res.status(400).send({ status: false, message: "billing : Street feild is Mandatory" })
+    //                 }
+    //                 if (address.billing.street) {
+    //                     if (!isValid(address.billing.street)) return res.status(400).send({ status: false, message: "billing : Street feild is Invalid" })
+    //                 }
+    //                 obj["address.billing.street"]= address.billing.street
+    //             }
+    //             if (address.billing.city) {
+    //                 if(!address.billing.city) {
+    //                     return res.status(400).send({ status: false, message: "Billing : City feild is Mandatory" })
+    //                 }
+    //                 if (address.billing.city) {
+    //                     if (!isValid(address.billing.city)) return res.status(400).send({ status: false, message: "billing : City feild is Invalid" })
+    //                 }
+    //                 obj["address.billing.city"]= address.billing.city
+    //             }
+    //             if (address.billing.pincode) {
+    //                 if (!address.billing.pincode) {
+    //                     return res.status(400).send({ status: false, message: "billing : Pincode feild is Mandatory" })
+    //                 }
+    //                 if (address.billing.pincode) {
+    //                     if (!isvalidPincode(address.billing.pincode)) return res.status(400).send({ status: false, message: "billing : Pincode feild is Invalid" })
+    //                 }
+    //                 obj["address.billing.pincode"]= address.billing.pincode
+    //             }
+    //         }
+    //     }
+    // }
 
     //====================================Updating Profile=====================================================================================================================================================================
     const update = await userModel.findOneAndUpdate({_id : user},{$set : obj},{new : true}).select({__v : 0})
@@ -344,9 +372,9 @@ const updateuser = async function (req, res) {
 
     return res.status(200).send({ status: true, message: "User profile Updated Successfully :)", data: update })
 }
+}
 
 module.exports = { registerUser, userLogin, getProfile, updateuser };
-
 
 
 

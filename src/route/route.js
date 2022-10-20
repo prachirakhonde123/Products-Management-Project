@@ -14,11 +14,11 @@ const {
   deleteProduct,
 } = require("../Controllers/productController");
 
-const {createorder,updateOrder} = require('../Controllers/orderController')
+//const {createorder,updateOrder} = require('../Controllers/orderController')
 
 const { verifyToken, authentication, authorisation } = require("../Auth/auth");
 const { myCart , updateCart, getCart, deleteCart} = require("../controllers/cartController");
-const { createorder ,  updateorder} = require('../Controllers/orderController')
+const {  createorder ,  updateOrder} = require('../Controllers/orderController')
 
 router.get("/test-me", function (req, res) {
   res.send("working");
@@ -57,7 +57,7 @@ router.put("/users/:userId/cart",verifyToken,authentication,authorisation,update
 router.delete("/users/:userId/cart",deleteCart)
 
 
-router.post('/users/:userId/orders', createorder)
+router.post('/users/:userId/orders',  createorder)
 router.put('/users/:userId/orders', updateOrder)
 
 
