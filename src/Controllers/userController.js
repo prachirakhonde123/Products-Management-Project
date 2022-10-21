@@ -36,7 +36,7 @@ const registerUser = async function (req, res) {
         if (!isValidEmail(email.trim())) return res.status(400).send({ status: false, message: "Email is in Invalid Format" })
 
         let duplicateEmail = await userModel.findOne({ email: email })
-        if (duplicateEmail) return res.status(400).send({ status: false, message: `User is already registered with ${email} Email` })
+        if (duplicateEmail) return res.status(409).send({ status: false, message: `User is already registered with ${email} Email` })
 
         //____________________________________Validation for mobile_______________________________________________________
 
@@ -44,7 +44,7 @@ const registerUser = async function (req, res) {
         if ((!isvalidPhone(phone)) || (!isValid(phone))) return res.status(400).send({ status: false, message: "Invalid Format of mobile Number. Provide 10 digit Indian and Valid Phone Number" })
 
         let duplicateMobile = await userModel.findOne({ phone: phone })
-        if (duplicateMobile) return res.status(400).send({ status: false, message: `User is already registered with ${phone} mobile number` })
+        if (duplicateMobile) return res.status(409).send({ status: false, message: `User is already registered with ${phone} mobile number` })
 
         //___________________________________Validation for Password_______________________________________________________
         if (!password) return res.status(400).send({ status: false, message: "Password is Mandatory" })

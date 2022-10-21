@@ -93,9 +93,8 @@ const productCreate = async function (req, res) {
 
 
     //_______________________________________________Validation for Style_____________________________________________
-    if (style) {
-     
-      if (!validString) {  // style ma
+    if (style) {  
+      if (!validString(style)) { 
         return res
           .status(400)
           .send({ status: false, message: "style is in invalid format" });
@@ -194,11 +193,9 @@ const productCreate = async function (req, res) {
             });
         }
       }
-
-      //using array.isArray function to check the value is array or not.
-      if (Array.isArray(sizesArray)) {
+     
         newProductData["availableSizes"] = [...new Set(sizesArray)];
-      }
+      
     }
 
     //_______________________________________________Creating Product______________________________________________________
@@ -422,7 +419,7 @@ const updateproduct = async function (req, res) {
     if (isFreeShipping) {
       isFreeShipping = isFreeShipping.toLowerCase()
       if ((isFreeShipping == 'true') || (isFreeShipping == 'false')) {
-        isFreeShipping = JSON.parse(isFreeShipping) // converting string to boolean i.e in its original form
+        isFreeShipping = JSON.parse(isFreeShipping) 
       } else {
         return res.status(400).send({ status: false, message: "Enter a valid value for isFreeShipping i.e true or false" })
       }
@@ -542,19 +539,3 @@ module.exports = { productCreate, getProductsByQuery, getProductsById, updatepro
 
 
 
-// if (availableSizes) {
-    //   //____________Wrong size is given______________________________________
-    //   availableSizes = availableSizes.toUpperCase()
-    //   var sizesArray = availableSizes.split(",").map((x) => x.trim());
-    //   for (let i = 0; i < sizesArray.length; i++) {
-    //     if (!["S", "XS", "M", "X", "L", "XXL", "XL"].includes(sizesArray[i])) {
-    //       return res
-    //         .status(400)
-    //         .send({
-    //           status: false,
-    //           message:
-    //             "AvailableSizes should be among ['S','XS','M','X','L','XXL','XL']",
-    //         });
-    //     }
-    //   }
-    // }
