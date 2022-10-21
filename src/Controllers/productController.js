@@ -95,7 +95,7 @@ const productCreate = async function (req, res) {
     //_______________________________________________Validation for Style_____________________________________________
     if (style) {
      
-      if (!validString) {  // style ma
+      if (!validString(style)) {  // style ma
         return res
           .status(400)
           .send({ status: false, message: "style is in invalid format" });
