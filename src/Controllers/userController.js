@@ -1,6 +1,6 @@
 const userModel = require('../Models/userModel')
 const { uploadFile } = require('../Aws/aws')
-const { isValidEmail, isValidName, isValidBody, isValidPassword, isvalidPhone,  isValid, isvalidObjectId,validImage } = require('../Validations/validator')
+const { isValidEmail, isValidName, isValidBody, isValidPassword, isvalidPhone, isvalidPincode, isValid, isvalidObjectId,validImage } = require('../Validations/validator')
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
 
