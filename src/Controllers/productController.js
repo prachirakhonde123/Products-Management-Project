@@ -152,7 +152,7 @@ const productCreate = async function (req, res) {
     if(isDeleted || isDeleted==""){
       if(!isValid(isDeleted)) return res.status(400).send({status : false, message : "Value can't be Empty. Enter the value"})
 
-      if(isDeleted != "false" || isDeleted != "true") return res.status(400).send({status : false, message : "Provide Boolean Value"})
+      if(isDeleted != "false" && isDeleted != "true") return res.status(400).send({status : false, message : "Provide Boolean Value"})
 
       if(isDeleted == "true"){
         return res.status(400).send({status : false, message : "You cannot delete the product before creation.Use your brain. Bydefault it is false"})
@@ -370,12 +370,23 @@ const updateproduct = async function (req, res) {
 
     //=====================================================Updating Sizes of Product===================================================
 
-    if (availableSizes) {
+    if (availableSizes || availableSizes=="") {
+      if(!isValid(availableSizes)) return res.status(400).send({status : false, message : "Please enter availablesizes to update"})
       let Sizes = availableSizes.split(",").map(x => { return x = x.toUpperCase() });
       let validSizes = ['S', 'XS', 'M', 'X', 'L', 'XXL', 'XL'];
       let Result = Sizes.filter(x => validSizes.includes(x));
       if (Sizes.length !== Result.length) return res.status(400).send({ status: false, message: "AvailableSizes should be among ['S','XS','M','X','L','XXL','XL']" })
       obj1 = { availableSizes: { $each: Sizes } }
+    }
+
+    //====================================================Updating isDeleted key============================================================
+
+    if(isDeleted || isDeleted==""){
+      if(!isValid(isDeleted)) return res.status(400).send({status : false, message : "Value can't be Empty. Enter the value"})
+
+      if(isDeleted != "false" && isDeleted != "true") return res.status(400).send({status : false, message : "Provide Boolean Value"})
+
+      obj.isDeleted = isDeleted
     }
    
 
