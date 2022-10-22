@@ -16,7 +16,7 @@ const registerUser = async function (req, res) {
 
         if (isValidBody(rest)) return res.status(400).send({ status: false, message: "You can create user only using fname, lname, email, phone, password, address, profileImage !" })
 
-        //____________________________Validation for First Name______________________________________________
+    //===========================================Validation for First Name===================================================
         if (!fname) return res.status(400).send({ status: false, message: "First Name is Mandatory" })
 
         if (fname || fname == "") {
@@ -25,14 +25,14 @@ const registerUser = async function (req, res) {
             if (!isValidName(fname)) return res.status(400).send({ status: false, message: "First Name contains only letters" })
         }
 
-        //_____________________________Validation of Last Name___________________________________________________
+    //==================================================Validation of Last Name====================================================
         if (!lname) return res.status(400).send({ status: false, message: "Last Name is Mandatory" })
         if (lname || lname == "") {
             if (!isValid(lname)) return res.status(400).send({ status: false, message: "Please provide Last Name" })
             if (!isValidName(lname)) return res.status(400).send({ status: false, message: "Last Name contains only letters" })
         }
 
-        //________________________________________Validation for Email____________________________________________________
+    //==================================================Validation for Email=======================================================
         if (!email) return res.status(400).send({ status: false, message: "Email is Mandatory" })
         if (email || email == "") {
             if (!isValid(email)) return res.status(400).send({ status: false, message: "Please provide Email" })
@@ -42,7 +42,7 @@ const registerUser = async function (req, res) {
         let duplicateEmail = await userModel.findOne({ email: email })
         if (duplicateEmail) return res.status(409).send({ status: false, message: `User is already registered with ${email} Email` })
 
-        //____________________________________Validation for mobile_______________________________________________________
+    //==================================================Validation for mobile====================================================
 
         if (!phone) return res.status(400).send({ status: false, message: "Phone is Mandatory" })
         if (phone || phone == "") {
@@ -54,7 +54,7 @@ const registerUser = async function (req, res) {
         if (duplicateMobile) return res.status(409).send({ status: false, message: `User is already registered with ${phone} mobile number` })
 
 
-        //___________________________________Validation for Password_______________________________________________________
+    //===========================================Validation for Password==============================================================
         if (!password) return res.status(400).send({ status: false, message: "Password is Mandatory" })
         if (password || password == "") {
             if (!isValid(password)) return res.status(400).send({ status: false, message: "Please provide Password" })
@@ -62,13 +62,11 @@ const registerUser = async function (req, res) {
         }
 
 
-        //_____________________________________If address field is not given__________________________________________________
+    //=============================================Validation for Address==============================================================
 
 
         if (!address || Object.keys(address).length === 0) {
-            return res
-                .status(400)
-                .send({ status: false, message: "Address is required" });
+            return res.status(400).send({ status: false, message: "Address is required" });
         }
 
         if (address) {
@@ -87,7 +85,7 @@ const registerUser = async function (req, res) {
                         return res.status(400).send({ status: false, message: "Shipping : City feild is Mandatory" })
                     }
                     if (address.shipping.city) {
-                        if (!isValid(address.shipping.city)) return res.status(400).send({ status: false, message: "Shipping : City feild is Invalid" })
+                        if (!isValidName(address.shipping.city)) return res.status(400).send({ status: false, message: "Shipping : City feild is Invalid" })
                     }
                     data["address.shipping.city"] = address.shipping.city
                 }
@@ -119,7 +117,7 @@ const registerUser = async function (req, res) {
                         return res.status(400).send({ status: false, message: "billing : City feild is Mandatory" })
                     }
                     if (address.billing.city) {
-                        if (!isValid(address.billing.city)) return res.status(400).send({ status: false, message: "billing : City feild is Invalid" })
+                        if (!isValidName(address.billing.city)) return res.status(400).send({ status: false, message: "billing : City feild is Invalid" })
                     }
                     data["address.billing.city"] = address.billing.city
                 }
@@ -139,17 +137,14 @@ const registerUser = async function (req, res) {
 
         // data.address = addresses;
 
+    //==============================================Encrypting Password=================================================
+    let securedPass = await bcrypt.hash(password, 10)
+    data.password = securedPass //updating key 
 
-        //___________________Encrypting Password____________________________________
-        let securedPass = await bcrypt.hash(password, 10)
-        data.password = securedPass //updating key 
+    //=================================Validation for ProfileImage======================================================
+    if (file.length == 0) return res.status(400).send({ status: false, message: "ProfileImage field is Mandatory" });
 
-
-
-        //___________________________If ProfileImage is not Given______________________________________
-        if (file.length == 0) return res.status(400).send({ status: false, message: "ProfileImage field is Mandatory" });
-
-        //______________________If wrong key is given incase of ProfileImage__________________________
+        //____________________________If wrong key is given incase of ProfileImage__________________________
         if (file[0].fieldname !== "profileImage") {
             return res.status(400).send({ status: false, message: "Valid key is ProfileImage. Please provide file with key profileImage" });
         }
@@ -159,6 +154,8 @@ const registerUser = async function (req, res) {
             data.profileImage = uploadImage
             if (!validImage(data.profileImage)) return res.status(400).send({ status: false, message: "Invalid format of image" })
         }
+    
+    //=============================================Creating User===================================================================
 
         const createUser = await userModel.create(data)
         res.status(201).send({ status: true, message: "User registered succesfully", data: createUser });
@@ -170,7 +167,7 @@ const registerUser = async function (req, res) {
 }
 
 
-//===================================================== Login User ======================================================
+//*****************************************************Login User**************************************************
 
 const userLogin = async function (req, res) {
     try {
@@ -242,6 +239,7 @@ const getProfile = async (req, res) => {
 //********************************************************Update Profile API*************************************************
 
 const updateuser = async function (req, res) {
+    try{
     let user = req.params.userId
     let obj = {}
 
@@ -397,19 +395,22 @@ const updateuser = async function (req, res) {
             //   return res.status(400).send("addresss shipping is mandatory")
 
 
-            //====================================Updating Profile======================================================================================================================================
-            const update = await userModel.findOneAndUpdate({ _id: user }, { $set: obj }, { new: true }).select({ __v: 0 })
-            if (!update) {
-                return res.status(404).send({ status: false, message: "userId not found" })
-            }
-
+    //====================================Updating Profile======================================================================================================================================
+        const update = await userModel.findOneAndUpdate({ _id: user }, { $set: obj }, { new: true }).select({ __v: 0 })
+        if (!update) {
+            return res.status(404).send({ status: false, message: "userId not found" })
+        }
             return res.status(200).send({ status: true, message: "User profile Updated Successfully :)", data: update })
         }
     }
+  }
+  catch(err){
+    res.status(500).send({status : false, message : err.message})
+  }
 }
 
 
-
+//***************************************************************Modules*****************************************************************
 
 
 module.exports = { registerUser, userLogin, getProfile, updateuser };

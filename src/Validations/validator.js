@@ -1,4 +1,3 @@
-const moment = require("moment");
 const mongoose = require("mongoose");
 
 //============================================Validation for Body================================================
@@ -78,17 +77,20 @@ const isValidPrice = function (price) {
   return /^[1-9]\d{0,7}(?:\.\d{1,2})?$/.test(price);
 };
 
+
+//=======================================================Validation for Quantity============================================
 const validQuantity = function isInteger(value) {
   if (value < 1) return false;
   if (isNaN(Number(value))) return false;
   if (value % 1 == 0) return true;
 };
 
-
+//==========================================================Validation for Image================================================
 const validImage = function(image){
   return /(\.jpg|\.jpeg|\.bmp|\.gif|\.png)$/.test(image)
 }
 
+//=======================================================Exporting validations========================================================
 
 module.exports = {
   validInstallment,

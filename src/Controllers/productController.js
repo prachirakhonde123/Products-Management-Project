@@ -293,6 +293,8 @@ const updateproduct = async function (req, res) {
 
   if(!isValidBody(req.body)){return res.status(403).send({ status: false, message: "Please Provide data to update the product!" })}
 
+  //==============================================If invalid Keys are given========================================================
+
   if(isValidBody(rest)) return res.status(400).send({status : false, message : "You can update the product using title, description, price, isFreeShipping, productImage, style, availableSizes, installments"})
 
 

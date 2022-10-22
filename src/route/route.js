@@ -1,57 +1,21 @@
 const express = require("express");
 const router = express.Router();
-const {
-  registerUser,
-  userLogin,
-  getProfile,
-  updateuser,
-} = require("../Controllers/userController");
 
-const {
-  productCreate,
-  getProductsByQuery,
-  updateproduct,
-  getProductsById,
-  deleteProduct,
-} = require("../Controllers/productController");
-
-const {
-  createorder,
-  updateOrder } = require('../Controllers/orderController')
-
-const { 
-  verifyToken, 
-  authentication, 
-  authorisation } = require("../Auth/auth");
-
-
-const {
-  myCart,
-  updateCart, 
-  getCart, 
-  deleteCart } = require("../controllers/cartController");
+const {registerUser,userLogin,getProfile,updateuser} = require("../Controllers/userController");
+const {productCreate,getProductsByQuery,updateproduct,getProductsById,deleteProduct} = require("../Controllers/productController");
+const {createorder,updateOrder } = require('../Controllers/orderController')
+const {verifyToken, authentication,authorisation } = require("../Auth/auth");
+const {myCart,updateCart, getCart, deleteCart } = require("../controllers/cartController");
 
 
 //=========================================User Api's================================================================
 router.post("/register", registerUser);
 router.post("/login", userLogin);
-router.get(
-  "/user/:userId/profile",
-  verifyToken,
-  authentication,
-  authorisation,
-  getProfile
-);
-
-router.put(
-  "/user/:userId/profile",
-  verifyToken,
-  authentication,
-  authorisation,
-  updateuser
-);
+router.get("/user/:userId/profile",verifyToken,authentication,authorisation,getProfile);
+router.put("/user/:userId/profile",verifyToken,authentication,authorisation,updateuser);
 
 //==========================================Product API's==============================================================
+
 router.post("/products", productCreate);
 router.get("/products", getProductsByQuery);
 router.get("/products/:productId", getProductsById);
@@ -66,6 +30,7 @@ router.put("/users/:userId/cart", verifyToken, authentication, authorisation, up
 router.delete("/users/:userId/cart", verifyToken, authentication, authorisation, deleteCart)
 
 //====================================Order Api's=================================================================
+
 router.post('/users/:userId/orders', verifyToken, authentication, authorisation, createorder)
 router.put('/users/:userId/orders', verifyToken, authentication, authorisation, updateOrder)
 
