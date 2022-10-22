@@ -170,7 +170,6 @@ const registerUser = async function (req, res) {
 }
 
 
-
 //===================================================== Login User ======================================================
 
 const userLogin = async function (req, res) {
@@ -219,7 +218,7 @@ const userLogin = async function (req, res) {
 }
 
 
-//============================================ Get Profile Details ================================================
+//*************************************************************** Get Profile Details ***************************************************************
 
 const getProfile = async (req, res) => {
     try {
@@ -239,7 +238,8 @@ const getProfile = async (req, res) => {
 };
 
 
-//========================================= Update Profile Details =================================================
+
+//********************************************************Update Profile API*************************************************
 
 const updateuser = async function (req, res) {
     let user = req.params.userId
@@ -397,9 +397,7 @@ const updateuser = async function (req, res) {
             //   return res.status(400).send("addresss shipping is mandatory")
 
 
-
-
-            //====================================Updating Profile=====================================================================================================================================================================
+            //====================================Updating Profile======================================================================================================================================
             const update = await userModel.findOneAndUpdate({ _id: user }, { $set: obj }, { new: true }).select({ __v: 0 })
             if (!update) {
                 return res.status(404).send({ status: false, message: "userId not found" })

@@ -124,7 +124,6 @@ const updateCart = async function(req,res){
      return res.status(400).send({status : false, message : "User doesn't exists!"})
  }
 
-
   const {productId,cartId,removeProduct} = id
   
   
