@@ -9,11 +9,10 @@ const productCreate = async function (req, res) {
   try {
     let files = req.files;
     let requestBody = req.body;
-    let productImage;
     let obj = {}
 
-    let {title,description,price,currencyId,currencyFormat,isFreeShipping,style,availableSizes,installments,isDeleted,...rest} = requestBody;
-
+    let {title,description,price,currencyId,currencyFormat,isFreeShipping,style,availableSizes,installments,isDeleted,productImage,...rest} = requestBody;
+    console.log(rest)
     if(!isValidBody(requestBody)) return res.status(400).send({ status: false, message: "Please provide valid request body" })
 
     if(isValidBody(rest)) return res.status(400).send({ status: false, message: "You can create product only using title,description,price,currencyId,currencyFormat,isFreeShipping,style,availableSizes,installments"})
@@ -69,6 +68,10 @@ const productCreate = async function (req, res) {
 
     //================================================Validation for currency format(₹)===================================================
 
+    if(!currencyFormat){
+      obj.currencyFormat = "₹"
+    }
+
     if(currencyFormat || currencyFormat==""){
       if(currencyFormat !== "₹"){
         return res.status(400).send({status : false, message : `CurrenFormat should be "₹"`})
@@ -104,7 +107,7 @@ const productCreate = async function (req, res) {
     if(isFreeShipping || isFreeShipping=="") {
       if(!isValid(isFreeShipping)) return res.status(400).send({status : false, message : "Please provide isFreeshipping status"})
 
-      if(isFreeShipping != "true" || isFreeShipping != "false") return res.status(400).send({status: false,message: "isFreeShipping must be a boolean value"});
+      if(isFreeShipping != "true" && isFreeShipping != "false") return res.status(400).send({status: false,message: "isFreeShipping must be a boolean value"});
       
       obj.isFreeShipping = isFreeShipping
     }
@@ -345,7 +348,7 @@ const updateproduct = async function (req, res) {
     //================================================Validating isFreeShipping================================================
     if (isFreeShipping || isFreeShipping=="") {
       isFreeShipping = isFreeShipping.toLowerCase()
-      if(isFreeShipping != "true" || isFreeShipping != "false"){
+      if(isFreeShipping != "true" && isFreeShipping != "false"){
         return res.status(400).send({status : false, message : "Provide a boolean value to update"})
       }
       obj.isFreeShipping = isFreeShipping
