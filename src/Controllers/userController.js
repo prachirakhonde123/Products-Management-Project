@@ -65,77 +65,47 @@ const registerUser = async function (req, res) {
     //=============================================Validation for Address==============================================================
 
 
-        if (!address || Object.keys(address).length === 0) {
-            return res.status(400).send({ status: false, message: "Address is required" });
-        }
+    let addresss = JSON.parse(address)
+    if (!address) return res.status(400).send({ status: false, message: "Please include address" });
 
-        if (address) {
-            if (address.shipping) {
-                if (address.shipping.street) {
-                    if (!address.shipping.street) {
-                        return res.status(400).send({ status: false, message: "Shipping : Steet feild is Mandatory" })
-                    }
-                    if (address.shipping.street) {
-                        if (!isValid(address.shipping.street)) return res.status(400).send({ status: false, message: "Shipping : Steet feild is Invalid" })
-                    }
-                    data["address.shipping.street"] = address.shipping.street
-                }
-                if (address.shipping.city) {
-                    if (!address.shipping.city) {
-                        return res.status(400).send({ status: false, message: "Shipping : City feild is Mandatory" })
-                    }
-                    if (address.shipping.city) {
-                        if (!isValidName(address.shipping.city)) return res.status(400).send({ status: false, message: "Shipping : City feild is Invalid" })
-                    }
-                    data["address.shipping.city"] = address.shipping.city
-                }
-                if (address.shipping.pincode) {
-                    if (!address.shipping.pincode) {
-                        return res.status(400).send({ status: false, message: "Shipping : Pincode feild is Mandatory" })
-                    }
-                    if (address.shipping.pincode) {
-                        if (!isvalidPincode(address.shipping.pincode)) return res.status(400).send({ status: false, message: "Shipping : Pincode feild is Invalid" })
-                    }
-                    data["address.shipping.pincode"] = address.shipping.pincode
-                }
-                //   return res.status(400).send("addresss shipping is mandatory")
-            }
+    if (typeof address === "string")  {addresss = JSON.parse(address)}
+    if (!isValidBody(address)) return res.status(400).send({ status: false, message: "address is required" })
 
-            //================================================Updating Billing Address================================================//
-            if (address.billing) {
-                if (address.billing.street) {
-                    if (!address.billing.street) {
-                        return res.status(400).send({ status: false, message: "billing : Street feild is Mandatory" })
-                    }
-                    if (address.billing.street) {
-                        if (!isValid(address.billing.street)) return res.status(400).send({ status: false, message: "billing : Street feild is Invalid" })
-                    }
-                    data["address.billing.street"] = address.billing.street
-                }
-                if (address.billing.city) {
-                    if (!address.billing.city) {
-                        return res.status(400).send({ status: false, message: "billing : City feild is Mandatory" })
-                    }
-                    if (address.billing.city) {
-                        if (!isValidName(address.billing.city)) return res.status(400).send({ status: false, message: "billing : City feild is Invalid" })
-                    }
-                    data["address.billing.city"] = address.billing.city
-                }
+    if (!addresss.shipping) { return res.status(400).send({ status: false, message: "Please include shipping address" }) };
 
-                if (address.billing.pincode) {
-                    if (!address.billing.pincode) {
-                        return res.status(400).send({ status: false, message: "billing : Pincode feild is Mandatory" })
-                    }
-                    if (address.billing.pincode) {
-                        if (!isvalidPincode(address.billing.pincode)) return res.status(400).send({ status: false, message: "billing : Pincode feild is Invalid" })
-                    }
-                    data["address.billing.pincode"] = address.billing.pincode
-                }
-                //   return res.status(400).send("addresss shipping is mandatory")
-            }
-        }
+    if (!isValidBody(addresss.shipping)) return res.status(400).send({ status: false, message: "shipping address is required" })
 
-        // data.address = addresses;
+    if (!addresss.shipping.street) { return res.status(400).send({ status: false, message: "Please include shipping street" }) };
+    if (!isValid(addresss.shipping.street)) {
+        return res.status(400).send({ status: false, message: "street is required in shipping address!" });
+    }
+
+    if (!addresss.shipping.city) { return res.status(400).send({ status: false, message: "Please include shipping city" }) };
+    if (!isValid(addresss.shipping.city)) {
+        return res.status(400).send({ status: false, message: "city is required in shipping address!" });
+    }
+
+    if (!addresss.shipping.pincode) return res.status(400).send({ status: false, message: "please provide shipping pincode" });
+    if (!isvalidPincode(addresss.shipping.pincode)) return res.status(400).send({ status: false, message: "provide a valid pincode." })
+
+
+    if (!addresss.billing) { return res.status(400).send({ status: false, message: "Please include billing address" }) };
+    if (!isValidBody(addresss.billing)) return res.status(400).send({ status: false, message: "billing address is required" })
+
+    if (!addresss.billing.street) { return res.status(400).send({ status: false, message: "Please include billing street" }) };
+    if (!isValid(addresss.billing.street)) {
+        return res.status(400).send({ status: false, message: "street is required in billing address!" });
+    }
+
+    if (!addresss.billing.city) { return res.status(400).send({ status: false, message: "Please include billing city" }) };
+    if (!isValid(addresss.billing.city)) {
+        return res.status(400).send({ status: false, message: "city is required in billing address!" });
+    }
+
+    if (!addresss.billing.pincode) return res.status(400).send({ status: false, message: "please provide billing address!" });
+    if (!isvalidPincode(addresss.billing.pincode)) return res.status(400).send({ status: false, message: "provide a valid pincode." })
+
+    data.address = addresss
 
     //==============================================Encrypting Password=================================================
     let securedPass = await bcrypt.hash(password, 10)
@@ -329,81 +299,69 @@ const updateuser = async function (req, res) {
     //==========================================Updating Address==========================================
 
 
-    //==========================================Updating shiiping Address==========================================
     if (address) {
-        if (address.shipping) {
-            if (address.shipping.street) {
-                if (!address.shipping.street) {
-                    return res.status(400).send({ status: false, message: "Shipping : Steet feild is Mandatory" })
-                }
-                if (address.shipping.street) {
-                    if (!isValid(address.shipping.street)) return res.status(400).send({ status: false, message: "Shipping : Steet feild is Invalid" })
-                }
-                obj["address.shipping.street"] = address.shipping.street
-            }
-            if (address.shipping.city) {
-                if (!address.shipping.city) {
-                    return res.status(400).send({ status: false, message: "Shipping : City feild is Mandatory" })
-                }
-                if (address.shipping.city) {
-                    if (!isValid(address.shipping.city)) return res.status(400).send({ status: false, message: "Shipping : City feild is Invalid" })
-                }
-                obj["address.shipping.city"] = address.shipping.city
-            }
-            if (address.shipping.pincode) {
-                if (!address.shipping.pincode) {
-                    return res.status(400).send({ status: false, message: "Shipping : Pincode feild is Mandatory" })
-                }
-                if (address.shipping.pincode) {
-                    if (!isvalidPincode(address.shipping.pincode)) return res.status(400).send({ status: false, message: "Shipping : Pincode feild is Invalid" })
-                }
-                obj["address.shipping.pincode"] = address.shipping.pincode
-            }
-            //   return res.status(400).send("addresss shipping is mandatory")
-        }
+        if (typeof address === "string") { address = JSON.parse(address) }
+        if (!isValidBody(address)) return res.status(400).send({ status: false, message: "address is required" })
 
-        //================================================Updating Billing Address================================================//
+    //==================================================Updating Shipping Address========================================================
+
+        if (address.shipping) {
+            if (!isValidBody(address.shipping)) return res.status(400).send({ status: false, message: "shipping address is required" })
+            if (address.shipping.street) {
+                if (!isValid(address.shipping.street)) {
+                    return res.status(400).send({ status: false, message: "street is required in billing address!" });
+                }
+                obj['address.shipping.street'] = address.shipping.street;
+            }
+
+            if (address.shipping.city) {
+                if (!isValid(address.shipping.city)) return res.status(400).send({ status: false, message: "city is required in billing address!" });
+                obj['address.shipping.city'] = address.shipping.city;
+            }
+
+            if (address.shipping.pincode) {
+                let pinCode = parseInt(address.shipping.pincode)
+                if (!isvalidPincode(pinCode)) return res.status(400).send({ status: false, message: "provide a valid pincode." })
+                obj['address.shipping.pincode'] = pinCode;
+            }
+        }
+    
+    //==============================================Updating Billing Address==============================================================
         if (address.billing) {
+            if (!isValidBody(address.billing)) return res.status(400).send({ status: false, message: "billing address is required" })
+
             if (address.billing.street) {
-                if (!address.billing.street) {
-                    return res.status(400).send({ status: false, message: "billing : Street feild is Mandatory" })
+                if (!isValid(address.billing.street)) {
+                    return res.status(400).send({ status: false, message: "street is required in billing address!" });
                 }
-                if (address.billing.street) {
-                    if (!isValid(address.billing.street)) return res.status(400).send({ status: false, message: "billing : Street feild is Invalid" })
-                }
-                obj["address.billing.street"] = address.billing.street
+                obj['address.billing.street'] = address.billing.street;
             }
+
             if (address.billing.city) {
-                if (!address.billing.city) {
-                    return res.status(400).send({ status: false, message: "billing : City feild is Mandatory" })
+                if (!isValid(address.billing.city)) {
+                    return res.status(400).send({ status: false, message: "city is required in billing address!" });
                 }
-                if (address.billing.city) {
-                    if (!isValid(address.billing.city)) return res.status(400).send({ status: false, message: "billing : City feild is Invalid" })
-                }
-                obj["address.billing.city"] = address.billing.city
+                obj['address.billing.city'] = address.billing.city;
             }
+
 
             if (address.billing.pincode) {
-                if (!address.billing.pincode) {
-                    return res.status(400).send({ status: false, message: "billing : Pincode feild is Mandatory" })
-                }
-                if (address.billing.pincode) {
-                    if (!isvalidPincode(address.billing.pincode)) return res.status(400).send({ status: false, message: "billing : Pincode feild is Invalid" })
-                }
-                obj["address.billing.pincode"] = address.billing.pincode
+                let pinCode = parseInt(address.billing.pincode)
+                if (!isvalidPincode(pinCode)) return res.status(400).send({ status: false, message: "provide a valid pincode." })
+                obj['address.billing.pincode'] = pinCode;
             }
-            //   return res.status(400).send("addresss shipping is mandatory")
-
+        }
+    }
 
     //====================================Updating Profile======================================================================================================================================
         const update = await userModel.findOneAndUpdate({ _id: user }, { $set: obj }, { new: true }).select({ __v: 0 })
         if (!update) {
             return res.status(404).send({ status: false, message: "userId not found" })
         }
-            return res.status(200).send({ status: true, message: "User profile Updated Successfully :)", data: update })
-        }
-    }
+        return res.status(200).send({ status: true, message: "User profile Updated Successfully :)", data: update })
+
   }
+  
   catch(err){
     res.status(500).send({status : false, message : err.message})
   }
